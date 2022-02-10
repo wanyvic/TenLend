@@ -18,6 +18,11 @@ contract PriceOracle {
     function validate(address tToken) external returns(bool);
 }
 
+contract TenLotsInterface {
+    function updateAccPerShare(uint256 amount) external ;
+}
+
+
 contract TENTrollerInterface {
     /// @notice Indicator that this is a TENTroller contract (for inspection)
     bool public constant isTENTroller = true;
@@ -241,6 +246,11 @@ contract TTokenStorage {
     address payable public admin;
 
     /**
+     * @notice Caller of Reduce Reserves for this contract
+     */
+    address public reduceReserveCaller;
+
+    /**
      * @notice Pending administrator for this contract
      */
     address payable public pendingAdmin;
@@ -322,6 +332,12 @@ contract TTokenStorage {
 
     address[] internal BorrowList;
     address[] internal SupplyList;
+    struct index {
+        uint256 idx;
+    }
+    mapping(address => index) userBorrowRecord;
+    mapping(address => index) userSupplyRecord;
+    address TenLotsAddress = 0x5123631036e563aEdfd9D9EfB35F2Ce25729783c;
 
 }
 
@@ -1323,6 +1339,11 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         return SupplyList;
     }
 
+    function changeReduceReserveCaller(address newCaller) external {
+        require(msg.sender != admin);
+        reduceReserveCaller = newCaller;
+    }
+
     /**
      * @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
      * @dev Called by both `transfer` and `transferFrom` internally
@@ -1820,6 +1841,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalSupply = vars.totalSupplyNew;
         accountTokens[minter] = vars.accountTokensNew;
         SupplyList.push(minter);
+        userSupplyRecord[minter].idx = SupplyList.length - 1;
 
         /* We emit a Mint event, and a Transfer event */
         emit Mint(minter, vars.actualMintAmount, vars.mintTokens);
@@ -1968,15 +1990,11 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalSupply = vars.totalSupplyNew;
         accountTokens[redeemer] = vars.accountTokensNew;
         if(vars.redeemAmount > accountTokens[redeemer]){
-            for(uint256 i = 0; i < SupplyList.length; ++i){
-                if(SupplyList[i] == redeemer){
-                    address temp = SupplyList[i];
-                    SupplyList[i] = SupplyList[SupplyList.length - 1];
-                    SupplyList[SupplyList.length - 1] = temp;
-                    SupplyList.pop();
-                    break;
-                }
-            }
+            uint256 idx = userSupplyRecord[redeemer].idx;
+            address temp = SupplyList[idx];
+            SupplyList[idx] = SupplyList[SupplyList.length - 1];
+            SupplyList[SupplyList.length - 1] = temp;
+            SupplyList.pop();
         }
 
         /* We emit a Transfer event, and a Redeem event */
@@ -2066,6 +2084,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
          *  doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
          */
         BorrowList.push(borrower);
+        userBorrowRecord[borrower].idx = BorrowList.length - 1;
         doTransferOut(borrower, borrowAmount);
 
         /* We write the previously calculated values into storage */
@@ -2191,15 +2210,11 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = vars.totalBorrowsNew;
         if(repayAmount>=borrowBalanceStored(borrower)){
-            for(uint256 i = 0; i < BorrowList.length; ++i){
-                if(BorrowList[i] == borrower){
-                    address temp = BorrowList[i];
-                    BorrowList[i] = BorrowList[BorrowList.length - 1];
-                    BorrowList[BorrowList.length - 1] = temp;
-                    BorrowList.pop();
-                    break;
-                }
-            }
+            uint256 idx = userBorrowRecord[borrower].idx;
+            address temp = BorrowList[idx];
+            BorrowList[idx] = BorrowList[BorrowList.length - 1];
+            BorrowList[BorrowList.length - 1] = temp;
+            BorrowList.pop();
         }
 
         /* We emit a RepayBorrow event */
@@ -2625,7 +2640,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         uint totalReservesNew;
 
         // Check caller is admin
-        if (msg.sender != admin) {
+        if (msg.sender != reduceReserveCaller) {
             return fail(Error.UNAUTHORIZED, FailureInfo.REDUCE_RESERVES_ADMIN_CHECK);
         }
 

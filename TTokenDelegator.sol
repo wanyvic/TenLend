@@ -421,6 +421,7 @@ contract TTokenInterface is TTokenStorage {
     function seize(address liquidator, address borrower, uint seizeTokens) external returns (uint);
     function showBorrowList() external view returns(address[] memory);
     function showSupplyList() external view returns(address[] memory);
+    function changeReduceReserveCaller(address newCaller) external ;
 
 
     /*** Admin Functions ***/
@@ -433,14 +434,14 @@ contract TTokenInterface is TTokenStorage {
     function _setInterestRateModel(InterestRateModel newInterestRateModel) public returns (uint);
 }
 
-contract CErc20Storage {
+contract TErc20Storage {
     /**
      * @notice Underlying asset for this TToken
      */
     address public underlying;
 }
 
-contract CErc20Interface is CErc20Storage {
+contract TErc20Interface is TErc20Storage {
 
     /*** User Interface ***/
 
@@ -495,17 +496,17 @@ contract CDelegateInterface is CDelegationStorage {
     function _resignImplementation() public;
 }
 
-// File: contracts\CErc20Delegator.sol
+// File: contracts\TErc20Delegator.sol
 
 pragma solidity ^0.5.16;
 
 
 /**
- * @title TENLend's CErc20Delegator Contract
+ * @title TENLend's TErc20Delegator Contract
  * @notice TTokens which wrap an EIP-20 underlying and delegate to an implementation
  * @author TENLend
  */
-contract CErc20Delegator is TTokenInterface, CErc20Interface, CDelegatorInterface {
+contract TErc20Delegator is TTokenInterface, TErc20Interface, CDelegatorInterface {
     /**
      * @notice Construct a new money market
      * @param underlying_ The address of the underlying asset
@@ -556,7 +557,7 @@ contract CErc20Delegator is TTokenInterface, CErc20Interface, CDelegatorInterfac
      * @param becomeImplementationData The encoded bytes data to be passed to _becomeImplementation
      */
     function _setImplementation(address implementation_, bool allowResign, bytes memory becomeImplementationData) public {
-        require(msg.sender == admin, "CErc20Delegator::_setImplementation: Caller must be admin");
+        require(msg.sender == admin, "TErc20Delegator::_setImplementation: Caller must be admin");
 
         if (allowResign) {
             delegateToImplementation(abi.encodeWithSignature("_resignImplementation()"));
@@ -841,6 +842,9 @@ contract CErc20Delegator is TTokenInterface, CErc20Interface, CDelegatorInterfac
        bytes memory data = delegateToViewImplementation(abi.encodeWithSignature("showSupplyList()"));
        return abi.decode(data, (address[]));
     }
+    function changeReduceReserveCaller(address newReserveCaller) external {
+        bytes memory data = delegateToImplementation(abi.encodeWithSignature("changeReduceReserveCaller()",newReserveCaller));
+    }
 
 
     /*** Admin Functions ***/
@@ -966,7 +970,7 @@ contract CErc20Delegator is TTokenInterface, CErc20Interface, CDelegatorInterfac
      * @dev It returns to the external caller whatever the implementation returns or forwards reverts
      */
     function () external payable {
-        require(msg.value == 0,"CErc20Delegator:fallback: cannot send value to fallback");
+        require(msg.value == 0,"TErc20Delegator:fallback: cannot send value to fallback");
 
         // delegate all other functions to current implementation
         (bool success, ) = implementation.delegatecall(msg.data);
