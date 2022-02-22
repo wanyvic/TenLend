@@ -1,0 +1,53 @@
+{
+	"compiler": {
+		"version": "0.5.16+commit.9c3226ce"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "implementation",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"methods": {}
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"TTokenDelegate.sol": "TDelegationStorage"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"TTokenDelegate.sol": {
+			"keccak256": "0xb2454ece3637e127ce29c57b91decd763efb12fd3dbe391d6645499427efe9c0",
+			"urls": [
+				"bzz-raw://3bf9edff5375c4708cb8ca8713a367c6477fe7f885e1f6de0b768b06c7f1f657",
+				"dweb:/ipfs/QmUVvisJSKZtzURbmkDuEmrS3sDXUNj6TyuchooY4jcebM"
+			]
+		}
+	},
+	"version": 1
+}

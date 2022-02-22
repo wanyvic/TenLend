@@ -302,6 +302,14 @@ contract TTokenStorage {
      */
     uint public constant protocolSeizeShareMantissa = 2.8e16; //2.8%
 
+    address[] internal BorrowList;
+    address[] internal SupplyList;
+    struct index {
+        uint256 idx;
+    }
+    mapping(address => index) userBorrowRecord;
+    mapping(address => index) userSupplyRecord;
+
 }
 
 contract TTokenInterface is TTokenStorage {
@@ -1294,6 +1302,14 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         _notEntered = true;
     }
 
+    function showBorrowList() external view returns(address[] memory){
+        return BorrowList;
+    }
+
+    function showSupplyList() external view returns(address[] memory){
+        return SupplyList;
+    }
+
     /**
      * @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
      * @dev Called by both `transfer` and `transferFrom` internally
@@ -1789,6 +1805,9 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalSupply = vars.totalSupplyNew;
         accountTokens[minter] = vars.accountTokensNew;
 
+        SupplyList.push(minter);
+        userSupplyRecord[minter].idx = SupplyList.length - 1;
+
         /* We emit a Mint event, and a Transfer event */
         emit Mint(minter, vars.actualMintAmount, vars.mintTokens);
         emit Transfer(address(this), minter, vars.mintTokens);
@@ -1936,6 +1955,15 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalSupply = vars.totalSupplyNew;
         accountTokens[redeemer] = vars.accountTokensNew;
 
+        if(vars.redeemAmount > accountTokens[redeemer]){
+            uint256 idx = userSupplyRecord[redeemer].idx;
+            address temp = SupplyList[idx];
+            SupplyList[idx] = SupplyList[SupplyList.length - 1];
+            SupplyList[SupplyList.length - 1] = temp;
+            SupplyList.pop();
+            delete userSupplyRecord[redeemer];
+        }
+
         /* We emit a Transfer event, and a Redeem event */
         emit Transfer(redeemer, address(this), vars.redeemTokens);
         emit Redeem(redeemer, vars.redeemAmount, vars.redeemTokens);
@@ -2022,6 +2050,8 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
          *  On success, the tToken borrowAmount less of cash.
          *  doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
          */
+        BorrowList.push(borrower);
+        userBorrowRecord[borrower].idx = BorrowList.length - 1;
         doTransferOut(borrower, borrowAmount);
 
         /* We write the previously calculated values into storage */
@@ -2146,6 +2176,13 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountBorrows[borrower].principal = vars.accountBorrowsNew;
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = vars.totalBorrowsNew;
+        if(repayAmount>=borrowBalanceStored(borrower)){
+            uint256 idx = userBorrowRecord[borrower].idx;
+            address temp = BorrowList[idx];
+            BorrowList[idx] = BorrowList[BorrowList.length - 1];
+            BorrowList[BorrowList.length - 1] = temp;
+            BorrowList.pop();
+        }
 
         /* We emit a RepayBorrow event */
         emit RepayBorrow(payer, borrower, vars.actualRepayAmount, vars.accountBorrowsNew, vars.totalBorrowsNew);

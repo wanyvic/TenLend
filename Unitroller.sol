@@ -2724,7 +2724,7 @@ contract UnitrollerAdminStorage {
     /**
     * @notice Active brains of Unitroller
     */
-    address public tentrollerImplementation;
+    address public implementation;
 
     /**
     * @notice Pending brains of Unitroller
@@ -2857,7 +2857,7 @@ pragma solidity ^0.5.16;
 
 /**
  * @title TENTrollerCore
- * @dev Storage for the tentroller is at this address, while execution is delegated to the `tentrollerImplementation`.
+ * @dev Storage for the tentroller is at this address, while execution is delegated to the `implementation`.
  * TTokens should reference this contract as their tentroller.
  */
 contract Unitroller is UnitrollerAdminStorage, TENTrollerErrorReporter {
@@ -2915,14 +2915,14 @@ contract Unitroller is UnitrollerAdminStorage, TENTrollerErrorReporter {
         }
 
         // Save current values for inclusion in log
-        address oldImplementation = tentrollerImplementation;
+        address oldImplementation = implementation;
         address oldPendingImplementation = pendingTENTrollerImplementation;
 
-        tentrollerImplementation = pendingTENTrollerImplementation;
+        implementation = pendingTENTrollerImplementation;
 
         pendingTENTrollerImplementation = address(0);
 
-        emit NewImplementation(oldImplementation, tentrollerImplementation);
+        emit NewImplementation(oldImplementation, implementation);
         emit NewPendingImplementation(oldPendingImplementation, pendingTENTrollerImplementation);
 
         return uint(Error.NO_ERROR);
@@ -2987,7 +2987,7 @@ contract Unitroller is UnitrollerAdminStorage, TENTrollerErrorReporter {
      */
     function () payable external {
         // delegate all other functions to current implementation
-        (bool success, ) = tentrollerImplementation.delegatecall(msg.data);
+        (bool success, ) = implementation.delegatecall(msg.data);
 
         assembly {
               let free_mem_ptr := mload(0x40)

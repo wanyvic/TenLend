@@ -1,0 +1,62 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"görli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"linkReferences": {},
+			"object": "6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a7231582067f1d37979c441530291be4baa87bbbc8d7d4fbb35c0413aa0df32cc5136b0f964736f6c63430005100032",
+			"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 PUSH8 0xF1D37979C4415302 SWAP2 0xBE 0x4B 0xAA DUP8 0xBB 0xBC DUP14 PUSH30 0x4FBB35C0413AA0DF32CC5136B0F964736F6C634300051000320000000000 ",
+			"sourceMap": "9862:2025:0:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;9862:2025:0;;;;;;;"
+		},
+		"deployedBytecode": {
+			"linkReferences": {},
+			"object": "6080604052600080fdfea265627a7a7231582067f1d37979c441530291be4baa87bbbc8d7d4fbb35c0413aa0df32cc5136b0f964736f6c63430005100032",
+			"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 PUSH8 0xF1D37979C4415302 SWAP2 0xBE 0x4B 0xAA DUP8 0xBB 0xBC DUP14 PUSH30 0x4FBB35C0413AA0DF32CC5136B0F964736F6C634300051000320000000000 ",
+			"sourceMap": "9862:2025:0:-;;;;;"
+		},
+		"gasEstimates": {
+			"creation": {
+				"codeDepositCost": "12400",
+				"executionCost": "66",
+				"totalCost": "12466"
+			},
+			"internal": {
+				"addThenSubUInt(uint256,uint256,uint256)": "infinite",
+				"addUInt(uint256,uint256)": "infinite",
+				"divUInt(uint256,uint256)": "infinite",
+				"mulUInt(uint256,uint256)": "infinite",
+				"subUInt(uint256,uint256)": "infinite"
+			}
+		},
+		"methodIdentifiers": {}
+	},
+	"abi": []
+}

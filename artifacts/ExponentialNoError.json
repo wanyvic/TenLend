@@ -1,0 +1,91 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"görli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"linkReferences": {},
+			"object": "6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a723158200fbe1a02913c3ebc8e9a63cbe218e936639e9fce3edbe97fdbdc6ece7f13c67d64736f6c63430005100032",
+			"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 0xF 0xBE BYTE MUL SWAP2 EXTCODECOPY RETURNDATACOPY 0xBC DUP15 SWAP11 PUSH4 0xCBE218E9 CALLDATASIZE PUSH4 0x9E9FCE3E 0xDB 0xE9 PUSH32 0xDBDC6ECE7F13C67D64736F6C6343000510003200000000000000000000000000 ",
+			"sourceMap": "3150:6411:0:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;3150:6411:0;;;;;;;"
+		},
+		"deployedBytecode": {
+			"linkReferences": {},
+			"object": "6080604052600080fdfea265627a7a723158200fbe1a02913c3ebc8e9a63cbe218e936639e9fce3edbe97fdbdc6ece7f13c67d64736f6c63430005100032",
+			"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH6 0x627A7A723158 KECCAK256 0xF 0xBE BYTE MUL SWAP2 EXTCODECOPY RETURNDATACOPY 0xBC DUP15 SWAP11 PUSH4 0xCBE218E9 CALLDATASIZE PUSH4 0x9E9FCE3E 0xDB 0xE9 PUSH32 0xDBDC6ECE7F13C67D64736F6C6343000510003200000000000000000000000000 ",
+			"sourceMap": "3150:6411:0:-;;;;;"
+		},
+		"gasEstimates": {
+			"creation": {
+				"codeDepositCost": "12400",
+				"executionCost": "66",
+				"totalCost": "12466"
+			},
+			"internal": {
+				"add_(struct ExponentialNoError.Double memory,struct ExponentialNoError.Double memory)": "infinite",
+				"add_(struct ExponentialNoError.Exp memory,struct ExponentialNoError.Exp memory)": "infinite",
+				"add_(uint256,uint256)": "infinite",
+				"add_(uint256,uint256,string memory)": "infinite",
+				"div_(struct ExponentialNoError.Double memory,struct ExponentialNoError.Double memory)": "infinite",
+				"div_(struct ExponentialNoError.Double memory,uint256)": "infinite",
+				"div_(struct ExponentialNoError.Exp memory,struct ExponentialNoError.Exp memory)": "infinite",
+				"div_(struct ExponentialNoError.Exp memory,uint256)": "infinite",
+				"div_(uint256,struct ExponentialNoError.Double memory)": "infinite",
+				"div_(uint256,struct ExponentialNoError.Exp memory)": "infinite",
+				"div_(uint256,uint256)": "infinite",
+				"div_(uint256,uint256,string memory)": "infinite",
+				"fraction(uint256,uint256)": "infinite",
+				"greaterThanExp(struct ExponentialNoError.Exp memory,struct ExponentialNoError.Exp memory)": "infinite",
+				"isZeroExp(struct ExponentialNoError.Exp memory)": "infinite",
+				"lessThanExp(struct ExponentialNoError.Exp memory,struct ExponentialNoError.Exp memory)": "infinite",
+				"lessThanOrEqualExp(struct ExponentialNoError.Exp memory,struct ExponentialNoError.Exp memory)": "infinite",
+				"mul_(struct ExponentialNoError.Double memory,struct ExponentialNoError.Double memory)": "infinite",
+				"mul_(struct ExponentialNoError.Double memory,uint256)": "infinite",
+				"mul_(struct ExponentialNoError.Exp memory,struct ExponentialNoError.Exp memory)": "infinite",
+				"mul_(struct ExponentialNoError.Exp memory,uint256)": "infinite",
+				"mul_(uint256,struct ExponentialNoError.Double memory)": "infinite",
+				"mul_(uint256,struct ExponentialNoError.Exp memory)": "infinite",
+				"mul_(uint256,uint256)": "infinite",
+				"mul_(uint256,uint256,string memory)": "infinite",
+				"mul_ScalarTruncate(struct ExponentialNoError.Exp memory,uint256)": "infinite",
+				"mul_ScalarTruncateAddUInt(struct ExponentialNoError.Exp memory,uint256,uint256)": "infinite",
+				"safe224(uint256,string memory)": "infinite",
+				"safe32(uint256,string memory)": "infinite",
+				"sub_(struct ExponentialNoError.Double memory,struct ExponentialNoError.Double memory)": "infinite",
+				"sub_(struct ExponentialNoError.Exp memory,struct ExponentialNoError.Exp memory)": "infinite",
+				"sub_(uint256,uint256)": "infinite",
+				"sub_(uint256,uint256,string memory)": "infinite",
+				"truncate(struct ExponentialNoError.Exp memory)": "infinite"
+			}
+		},
+		"methodIdentifiers": {}
+	},
+	"abi": []
+}

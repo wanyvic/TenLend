@@ -1,8 +1,8 @@
-pragma solidity 0.7.6;
+pragma solidity >=0.8.0;
 pragma abicoder v2;
 
 
-
+import "./initializable.sol";
 // Part: Address
 
 // Part: OpenZeppelin/openzeppelin-contracts@3.4.0/Address
@@ -207,15 +207,21 @@ library Address {
  *
  * This contract is only required for intermediate, library-like contracts.
  */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address payable) {
+abstract contract ContextUpgradeable is Initializable {
+    function __Context_init() internal onlyInitializing {
+    }
+
+    function __Context_init_unchained() internal onlyInitializing {
+    }
+    function _msgSender() internal view virtual returns (address) {
         return msg.sender;
     }
 
-    function _msgData() internal view virtual returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+    function _msgData() internal view virtual returns (bytes calldata) {
         return msg.data;
     }
+
+    uint256[50] private __gap;
 }
 
 // Part: IERC20
@@ -348,7 +354,7 @@ library Math {
  * to protect against it, check out our blog post
  * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].
  */
-abstract contract ReentrancyGuard {
+abstract contract ReentrancyGuardUpgradeable is Initializable {
     // Booleans are more expensive than uint256 or any type that takes up a full
     // word because each write operation emits an extra SLOAD to first read the
     // slot's contents, replace the bits taken up by the boolean, and then write
@@ -365,7 +371,11 @@ abstract contract ReentrancyGuard {
 
     uint256 private _status;
 
-    constructor () internal {
+    function __ReentrancyGuard_init() internal onlyInitializing {
+        __ReentrancyGuard_init_unchained();
+    }
+
+    function __ReentrancyGuard_init_unchained() internal onlyInitializing {
         _status = _NOT_ENTERED;
     }
 
@@ -373,7 +383,7 @@ abstract contract ReentrancyGuard {
      * @dev Prevents a contract from calling itself, directly or indirectly.
      * Calling a `nonReentrant` function from another `nonReentrant`
      * function is not supported. It is possible to prevent this from happening
-     * by making the `nonReentrant` function external, and make it call a
+     * by making the `nonReentrant` function external, and making it call a
      * `private` function that does the actual work.
      */
     modifier nonReentrant() {
@@ -389,6 +399,8 @@ abstract contract ReentrancyGuard {
         // https://eips.ethereum.org/EIPS/eip-2200)
         _status = _NOT_ENTERED;
     }
+
+    uint256[49] private __gap;
 }
 
 // Part: SafeMath
@@ -630,7 +642,7 @@ interface IMintableToken is IERC20 {
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
-abstract contract Ownable is Context {
+abstract contract OwnableUpgradeable is Initializable, ContextUpgradeable {
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -638,10 +650,12 @@ abstract contract Ownable is Context {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
-        address msgSender = _msgSender();
-        _owner = msgSender;
-        emit OwnershipTransferred(address(0), msgSender);
+    function __Ownable_init() internal onlyInitializing {
+        __Ownable_init_unchained();
+    }
+
+    function __Ownable_init_unchained() internal onlyInitializing {
+        _transferOwnership(_msgSender());
     }
 
     /**
@@ -667,8 +681,7 @@ abstract contract Ownable is Context {
      * thereby removing any functionality that is only available to the owner.
      */
     function renounceOwnership() public virtual onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
+        _transferOwnership(address(0));
     }
 
     /**
@@ -677,9 +690,20 @@ abstract contract Ownable is Context {
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
+        _transferOwnership(newOwner);
     }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Internal function without access restriction.
+     */
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+
+    uint256[49] private __gap;
 }
 
 // Part: SafeERC20
@@ -754,10 +778,11 @@ library SafeERC20 {
     }
 }
 
+
 // EPS Staking contract for http://ellipsis.finance/
 // EPS staked within this contact entitles stakers to a portion of the admin fees generated by Ellipsis' AMM contracts
 // Based on SNX MultiRewards by iamdefinitelyahuman - https://github.com/iamdefinitelyahuman/multi-rewards
-contract MultiFeeDistribution is ReentrancyGuard, Ownable {
+contract MultiFeeDistribution is Initializable , OwnableUpgradeable , ReentrancyGuardUpgradeable{
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -775,7 +800,7 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
         uint256 total;
         uint256 unlocked;
         uint256 locked;
-        uint256 earned;
+        // uint256 earned;
     }
     struct LockedBalance {
         uint256 amount;
@@ -786,7 +811,9 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
         uint256 amount;
     }
 
-    IMintableToken public immutable stakingToken;
+    uint256 perCent;
+
+    IMintableToken public stakingToken;
     address[] public rewardTokens;
     mapping(address => Reward) public rewardData;
 
@@ -811,18 +838,20 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
     // Private mappings for balance data
     mapping(address => Balances) private balances;
     mapping(address => LockedBalance[]) private userLocks;
-    mapping(address => LockedBalance[]) private userEarnings;
+    // mapping(address => LockedBalance[]) private userEarnings;
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(
-        address _stakingToken,
-        address[] memory _minters
-    ) Ownable() {
+    function initialize(
+        address _stakingToken
+        // address[] memory _minters
+    ) public initializer {
+        __Ownable_init();
+        __ReentrancyGuard_init();
         stakingToken = IMintableToken(_stakingToken);
-        for (uint i; i < _minters.length; i++) {
-            minters[_minters[i]] = true;
-        }
+        // for (uint i; i < _minters.length; i++) {
+        //     minters[_minters[i]] = true;
+        // }
         // First reward MUST be the staking token or things will break
         // related to the 50% penalty and distribution to locked balances
         rewardTokens.push(_stakingToken);
@@ -896,16 +925,16 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
     }
 
     // Address and claimable amount of all reward tokens for the given account
-    function claimableRewards(address account) external view returns (RewardData[] memory rewards) {
-        rewards = new RewardData[](rewardTokens.length);
-        for (uint256 i = 0; i < rewards.length; i++) {
+    function claimableRewards(address account) external view returns (RewardData[] memory rewardAmount) {
+        rewardAmount = new RewardData[](rewardTokens.length);
+        for (uint256 i = 0; i < rewardAmount.length; i++) {
             // If i == 0 this is the stakingReward, distribution is based on locked balances
             uint256 balance = i == 0 ? balances[account].locked : balances[account].total;
             uint256 supply = i == 0 ? lockedSupply : totalSupply;
-            rewards[i].token = rewardTokens[i];
-            rewards[i].amount = _earned(account, rewards[i].token, balance, supply);
+            rewardAmount[i].token = rewardTokens[i];
+            rewardAmount[i].amount = _earned(account, rewardAmount[i].token, balance, supply);
         }
-        return rewards;
+        return rewardAmount;
     }
 
     // Total balance of an account, including unlocked, locked and earned tokens
@@ -916,38 +945,38 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
     // Total withdrawable balance for an account to which no penalty is applied
     function unlockedBalance(address user) view external returns (uint256 amount) {
         amount = balances[user].unlocked;
-        LockedBalance[] storage earnings = userEarnings[msg.sender];
-        for (uint i = 0; i < earnings.length; i++) {
-            if (earnings[i].unlockTime > block.timestamp) {
+        LockedBalance[] storage locks = userLocks[msg.sender];
+        for (uint i = 0; i < locks.length; i++) {
+            if (locks[i].unlockTime > block.timestamp) {
                 break;
             }
-            amount = amount.add(earnings[i].amount);
+            amount = amount.add(locks[i].amount);
         }
         return amount;
     }
 
     // Information on the "earned" balances of a user
     // Earned balances may be withdrawn immediately for a 50% penalty
-    function earnedBalances(
-        address user
-    ) view external returns (
-        uint256 total,
-        LockedBalance[] memory earningsData
-    ) {
-        LockedBalance[] storage earnings = userEarnings[user];
-        uint256 idx;
-        for (uint i = 0; i < earnings.length; i++) {
-            if (earnings[i].unlockTime > block.timestamp) {
-                if (idx == 0) {
-                    earningsData = new LockedBalance[](earnings.length - i);
-                }
-                earningsData[idx] = earnings[i];
-                idx++;
-                total = total.add(earnings[i].amount);
-            }
-        }
-        return (total, earningsData);
-    }
+    // function earnedBalances(
+    //     address user
+    // ) view external returns (
+    //     uint256 total,
+    //     LockedBalance[] memory earningsData
+    // ) {
+    //     LockedBalance[] storage earnings = userEarnings[user];
+    //     uint256 idx;
+    //     for (uint i = 0; i < earnings.length; i++) {
+    //         if (earnings[i].unlockTime > block.timestamp) {
+    //             if (idx == 0) {
+    //                 earningsData = new LockedBalance[](earnings.length - i);
+    //             }
+    //             earningsData[idx] = earnings[i];
+    //             idx++;
+    //             total = total.add(earnings[i].amount);
+    //         }
+    //     }
+    //     return (total, earningsData);
+    // }
 
     // Information on a user's locked balances
     function lockedBalances(
@@ -983,21 +1012,21 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
         uint256 penaltyAmount
     ) {
         Balances storage bal = balances[user];
-        if (bal.earned > 0) {
+        if (bal.locked > 0) {
             uint256 amountWithoutPenalty;
-            uint256 length = userEarnings[user].length;
+            uint256 length = userLocks[user].length;
             for (uint i = 0; i < length; i++) {
-                uint256 earnedAmount = userEarnings[user][i].amount;
-                if (earnedAmount == 0) continue;
-                if (userEarnings[user][i].unlockTime > block.timestamp) {
+                uint256 lockedAmount = userLocks[user][i].amount;
+                if (lockedAmount == 0) continue;
+                if (userLocks[user][i].unlockTime > block.timestamp) {
                     break;
                 }
-                amountWithoutPenalty = amountWithoutPenalty.add(earnedAmount);
+                amountWithoutPenalty = amountWithoutPenalty.add(lockedAmount);
             }
 
-            penaltyAmount = bal.earned.sub(amountWithoutPenalty).div(2);
+            penaltyAmount = bal.locked.sub(amountWithoutPenalty).mul(1e12).div(100).mul(10).div(1e12);
         }
-        amount = bal.unlocked.add(bal.earned).sub(penaltyAmount);
+        amount = bal.unlocked.add(bal.locked).sub(penaltyAmount);
         return (amount, penaltyAmount);
     }
 
@@ -1027,31 +1056,9 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
         emit Staked(msg.sender, amount);
     }
 
-    // Mint new tokens
-    // Minted tokens receive rewards normally but incur a 50% penalty when
-    // withdrawn before lockDuration has passed.
-    function mint(address user, uint256 amount) external updateReward(user) {
-        require(minters[msg.sender]);
-        totalSupply = totalSupply.add(amount);
-        Balances storage bal = balances[user];
-        bal.total = bal.total.add(amount);
-        bal.earned = bal.earned.add(amount);
-        uint256 unlockTime = block.timestamp.div(rewardsDuration).mul(rewardsDuration).add(lockDuration);
-        LockedBalance[] storage earnings = userEarnings[user];
-        uint256 idx = earnings.length;
-
-        if (idx == 0 || earnings[idx-1].unlockTime < unlockTime) {
-            earnings.push(LockedBalance({amount: amount, unlockTime: unlockTime}));
-        } else {
-            earnings[idx-1].amount = earnings[idx-1].amount.add(amount);
-        }
-        stakingToken.mint(address(this), amount);
-        emit Staked(user, amount);
-    }
-
     // Withdraw staked tokens
     // First withdraws unlocked tokens, then earned tokens. Withdrawing earned tokens
-    // incurs a 50% penalty which is distributed based on locked balances.
+    // incurs a 10% penalty which is distributed based on locked balances.
     function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         Balances storage bal = balances[msg.sender];
@@ -1061,28 +1068,28 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
             bal.unlocked = bal.unlocked.sub(amount);
         } else {
             uint256 remaining = amount.sub(bal.unlocked);
-            require(bal.earned >= remaining, "Insufficient unlocked balance");
+            require(bal.locked >= remaining, "Insufficient unlocked balance");
             bal.unlocked = 0;
-            bal.earned = bal.earned.sub(remaining);
+            bal.locked = bal.locked.sub(remaining);
             for (uint i = 0; ; i++) {
-                uint256 earnedAmount = userEarnings[msg.sender][i].amount;
-                if (earnedAmount == 0) continue;
-                if (penaltyAmount == 0 && userEarnings[msg.sender][i].unlockTime > block.timestamp) {
+                uint256 lockedAmount = userLocks[msg.sender][i].amount;
+                if (lockedAmount == 0) continue;
+                if (penaltyAmount == 0 && userLocks[msg.sender][i].unlockTime > block.timestamp) {
                     penaltyAmount = remaining;
-                    require(bal.earned >= remaining, "Insufficient balance after penalty");
-                    bal.earned = bal.earned.sub(remaining);
-                    if (bal.earned == 0) {
-                        delete userEarnings[msg.sender];
+                    require(bal.locked >= remaining, "Insufficient balance after penalty");
+                    bal.locked = bal.locked.sub(remaining);
+                    if (bal.locked == 0) {
+                        delete userLocks[msg.sender];
                         break;
                     }
-                    remaining = remaining.mul(2);
+                    remaining = remaining.mul(1e12).div(100).mul(10).div(1e12);
                 }
-                if (remaining <= earnedAmount) {
-                    userEarnings[msg.sender][i].amount = earnedAmount.sub(remaining);
+                if (remaining <= lockedAmount) {
+                    userLocks[msg.sender][i].amount = lockedAmount.sub(remaining);
                     break;
                 } else {
-                    delete userEarnings[msg.sender][i];
-                    remaining = remaining.sub(earnedAmount);
+                    delete userLocks[msg.sender][i];
+                    remaining = remaining.sub(lockedAmount);
                 }
             }
         }
@@ -1113,11 +1120,11 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
     // Withdraw full unlocked balance and claim pending rewards
     function exit() external updateReward(msg.sender) {
         (uint256 amount, uint256 penaltyAmount) = withdrawableBalance(msg.sender);
-        delete userEarnings[msg.sender];
+        delete userLocks[msg.sender];
         Balances storage bal = balances[msg.sender];
-        bal.total = bal.total.sub(bal.unlocked).sub(bal.earned);
+        bal.total = bal.total.sub(bal.unlocked).sub(bal.locked);
         bal.unlocked = 0;
-        bal.earned = 0;
+        bal.locked = 0;
 
         totalSupply = totalSupply.sub(amount.add(penaltyAmount));
         stakingToken.safeTransfer(msg.sender, amount);

@@ -337,7 +337,6 @@ contract TTokenStorage {
     }
     mapping(address => index) userBorrowRecord;
     mapping(address => index) userSupplyRecord;
-    address TenLotsAddress = 0x5123631036e563aEdfd9D9EfB35F2Ce25729783c;
 
 }
 
@@ -1995,6 +1994,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
             SupplyList[idx] = SupplyList[SupplyList.length - 1];
             SupplyList[SupplyList.length - 1] = temp;
             SupplyList.pop();
+            delete userSupplyRecord[redeemer];
         }
 
         /* We emit a Transfer event, and a Redeem event */
