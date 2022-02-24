@@ -2696,19 +2696,19 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     }
 }
 
-// File: CEther.sol
+// File: TEther.sol
 
 pragma solidity ^0.5.16;
 
 
 /**
- * @title TENLend's CEther Contract
+ * @title TENLend's TEther Contract
  * @notice TToken which wraps Ether
  * @author TENLend
  */
-contract CEther is TToken {
+contract TEther is TToken {
     /**
-     * @notice Construct a new CEther money market
+     * @notice Construct a new TEther money market
      * @param tentroller_ The address of the TENTroller
      * @param interestRateModel_ The address of the interest rate model
      * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
@@ -2814,7 +2814,7 @@ contract CEther is TToken {
     }
 
     /**
-     * @notice Send Ether to CEther to mint
+     * @notice Send Ether to TEther to mint
      */
     function () external payable {
         (uint err,) = mintInternal(msg.value);
@@ -2885,40 +2885,40 @@ pragma solidity ^0.5.16;
  */
 contract Maximillion {
     /**
-     * @notice The default cEther market to repay in
+     * @notice The default tEther market to repay in
      */
-    CEther public cEther;
+    TEther public tEther;
 
     /**
-     * @notice Construct a Maximillion to repay max in a CEther market
+     * @notice Construct a Maximillion to repay max in a TEther market
      */
-    constructor(CEther cEther_) public {
-        cEther = cEther_;
+    constructor(TEther tEther_) public {
+        tEther = tEther_;
     }
 
     /**
-     * @notice msg.sender sends Ether to repay an account's borrow in the cEther market
+     * @notice msg.sender sends Ether to repay an account's borrow in the tEther market
      * @dev The provided Ether is applied towards the borrow balance, any excess is refunded
      * @param borrower The address of the borrower account to repay on behalf of
      */
     function repayBehalf(address borrower) public payable {
-        repayBehalfExplicit(borrower, cEther);
+        repayBehalfExplicit(borrower, tEther);
     }
 
     /**
-     * @notice msg.sender sends Ether to repay an account's borrow in a cEther market
+     * @notice msg.sender sends Ether to repay an account's borrow in a tEther market
      * @dev The provided Ether is applied towards the borrow balance, any excess is refunded
      * @param borrower The address of the borrower account to repay on behalf of
-     * @param cEther_ The address of the cEther contract to repay in
+     * @param tEther_ The address of the tEther contract to repay in
      */
-    function repayBehalfExplicit(address borrower, CEther cEther_) public payable {
+    function repayBehalfExplicit(address borrower, TEther tEther_) public payable {
         uint received = msg.value;
-        uint borrows = cEther_.borrowBalanceCurrent(borrower);
+        uint borrows = tEther_.borrowBalanceCurrent(borrower);
         if (received > borrows) {
-            cEther_.repayBorrowBehalf.value(borrows)(borrower);
+            tEther_.repayBorrowBehalf.value(borrows)(borrower);
             msg.sender.transfer(received - borrows);
         } else {
-            cEther_.repayBorrowBehalf.value(received)(borrower);
+            tEther_.repayBorrowBehalf.value(received)(borrower);
         }
     }
 }

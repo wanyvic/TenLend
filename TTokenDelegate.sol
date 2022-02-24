@@ -1699,7 +1699,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     function accrueInterest() public returns (uint) {
         /* Remember the initial block number */
 
-        // tentroller.oracle().validate(address(this));
+        tentroller.oracle().validate(address(this));
         uint currentBlockNumber = getBlockNumber();
         uint accrualBlockNumberPrior = accrualBlockNumber;
 
