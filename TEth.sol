@@ -2733,19 +2733,19 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     }
 }
 
-// File: CEther.sol
+// File: TEther.sol
 
 pragma solidity ^0.5.16;
 
 
 /**
- * @title TENLend's CEther Contract
+ * @title TENLend's TEther Contract
  * @notice TToken which wraps Ether
  * @author TENLend
  */
-contract CEther is TToken {
+contract TEther is TToken {
     /**
-     * @notice Construct a new CEther money market
+     * @notice Construct a new TEther money market
      * @param tentroller_ The address of the TENTroller
      * @param interestRateModel_ The address of the interest rate model
      * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
@@ -2851,7 +2851,7 @@ contract CEther is TToken {
     }
 
     /**
-     * @notice Send Ether to CEther to mint
+     * @notice Send Ether to TEther to mint
      */
     function () external payable {
         (uint err,) = mintInternal(msg.value);

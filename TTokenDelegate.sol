@@ -334,6 +334,7 @@ contract TTokenStorage {
     address[] internal SupplyList;
     struct index {
         uint256 idx;
+        bool isPresent;
     }
     mapping(address => index) userBorrowRecord;
     mapping(address => index) userSupplyRecord;
@@ -1404,6 +1405,32 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         if (startingAllowance != uint(-1)) {
             transferAllowances[src][spender] = allowanceNew;
         }
+        //Updating the supplier list
+        if(userSupplyRecord[dst].isPresent){
+            if(tokens == accountTokens[spender]){
+                uint256 idx = userSupplyRecord[spender].idx;
+                address temp = SupplyList[idx];
+                SupplyList[idx] = SupplyList[SupplyList.length - 1];
+                SupplyList[SupplyList.length - 1] = temp;
+                SupplyList.pop();
+                delete userSupplyRecord[spender];
+            }
+        } else {
+            if(tokens == accountTokens[spender]){
+                uint256 idx = userSupplyRecord[spender].idx;
+                address temp = SupplyList[idx];
+                SupplyList[idx] = SupplyList[SupplyList.length - 1];
+                SupplyList[SupplyList.length - 1] = temp;
+                SupplyList.pop();
+                delete userSupplyRecord[spender];
+                SupplyList.push(dst);
+                userSupplyRecord[dst].idx = SupplyList.length - 1;
+            } else {
+                        SupplyList.push(dst);
+                        userSupplyRecord[dst].idx = SupplyList.length - 1;
+            }
+        }
+        
 
         /* We emit a Transfer event */
         emit Transfer(src, dst, tokens);
@@ -1841,6 +1868,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountTokens[minter] = vars.accountTokensNew;
         SupplyList.push(minter);
         userSupplyRecord[minter].idx = SupplyList.length - 1;
+        userSupplyRecord[minter].isPresent = true;
 
         /* We emit a Mint event, and a Transfer event */
         emit Mint(minter, vars.actualMintAmount, vars.mintTokens);
@@ -1988,7 +2016,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         /* We write previously calculated values into storage */
         totalSupply = vars.totalSupplyNew;
         accountTokens[redeemer] = vars.accountTokensNew;
-        if(vars.redeemAmount > accountTokens[redeemer]){
+        if(vars.redeemAmount >= accountTokens[redeemer]){
             uint256 idx = userSupplyRecord[redeemer].idx;
             address temp = SupplyList[idx];
             SupplyList[idx] = SupplyList[SupplyList.length - 1];
@@ -2085,6 +2113,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
          */
         BorrowList.push(borrower);
         userBorrowRecord[borrower].idx = BorrowList.length - 1;
+        userBorrowRecord[borrower].isPresent = true;
         doTransferOut(borrower, borrowAmount);
 
         /* We write the previously calculated values into storage */
@@ -2215,6 +2244,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
             BorrowList[idx] = BorrowList[BorrowList.length - 1];
             BorrowList[BorrowList.length - 1] = temp;
             BorrowList.pop();
+            delete userBorrowRecord[borrower];
         }
 
         /* We emit a RepayBorrow event */

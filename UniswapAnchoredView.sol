@@ -150,7 +150,7 @@ contract UniswapConfig {
     /// @dev Describe how the USD price should be determined for an asset.
     ///  There should be 1 TokenConfig object for each supported asset, passed in the constructor.
     struct TokenConfig {
-        address gToken;
+        address tToken;
         address underlying;
         bytes32 symbolHash;
         uint256 baseUnit;
@@ -171,7 +171,7 @@ contract UniswapConfig {
     TokenConfig[] public tokenConfigInfo;
     
     TokenConfig public defaultConfig = TokenConfig({
-        gToken:address(0),
+        tToken:address(0),
         underlying:address(0),
         symbolHash:bytes32(0),
         baseUnit:0,
@@ -183,8 +183,8 @@ contract UniswapConfig {
         isUniswapReversed:false
     });
     
-    mapping(address => config_exist) gTokenIndex;
-    mapping(address => config_exist) underlyingTokenIndex;
+    mapping(address => config_exist) tTokenIndex;
+    mapping(address => config_exist) underlyintTokenIndex;
     mapping(bytes32 => config_exist) symbolHashTokenIndex;
     mapping(address => config_exist) reporterTokenIndex;
     
@@ -209,24 +209,24 @@ contract UniswapConfig {
                 exist:true
             });
             
-            gTokenIndex[configs[i].gToken] = new_config;
-            underlyingTokenIndex[configs[i].underlying] = new_config;
+            tTokenIndex[configs[i].tToken] = new_config;
+            underlyintTokenIndex[configs[i].underlying] = new_config;
             symbolHashTokenIndex[configs[i].symbolHash] = new_config;
             reporterTokenIndex[configs[i].reporter] = new_config;
         }
     }
 
     
-    function getGTokenIndex(address gToken) internal view returns (uint) {
-       if(gTokenIndex[gToken].exist)
-       return gTokenIndex[gToken].index;
+    function getTTokenIndex(address tToken) internal view returns (uint) {
+       if(tTokenIndex[tToken].exist)
+       return tTokenIndex[tToken].index;
        
        return uint(-1);
     }
 
     function getUnderlyingIndex(address underlying) internal view returns (uint) {
-       if(underlyingTokenIndex[underlying].exist)
-       return underlyingTokenIndex[underlying].index;
+       if(underlyintTokenIndex[underlying].exist)
+       return underlyintTokenIndex[underlying].index;
        
        return uint(-1);
     }
@@ -298,13 +298,13 @@ contract UniswapConfig {
     }
 
     /**
-     * @notice Get the config for the gToken
-     * @dev If a config for the gToken is not found, falls back to searching for the underlying.
-     * @param gToken The address of the gToken of the config to get
+     * @notice Get the config for the tToken
+     * @dev If a config for the tToken is not found, falls back to searching for the underlying.
+     * @param tToken The address of the tToken of the config to get
      * @return The config object
      */
-    function getTokenConfigByGToken(address gToken) public view returns (TokenConfig memory) {
-        uint index = getGTokenIndex(gToken);
+    function getTokenConfigByTToken(address tToken) public view returns (TokenConfig memory) {
+        uint index = getTTokenIndex(tToken);
         if (index != uint(-1)) {
             return getTokenConfig(index);
         }
@@ -500,8 +500,8 @@ contract UniswapAnchoredView is  UniswapConfig, Ownable {
                 exist:true
             });
         
-        gTokenIndex[config.gToken] = new_config;
-        underlyingTokenIndex[config.underlying] = new_config;
+        tTokenIndex[config.tToken] = new_config;
+        underlyintTokenIndex[config.underlying] = new_config;
         symbolHashTokenIndex[config.symbolHash] = new_config;
         reporterTokenIndex[config.reporter] = new_config;
         
@@ -509,8 +509,8 @@ contract UniswapAnchoredView is  UniswapConfig, Ownable {
     
     function updateConfig(TokenConfig memory config) public onlyOwner {
         
-        require(gTokenIndex[config.gToken].exist,"config does not exist fo this gtoken");
-        uint index = gTokenIndex[config.gToken].index;
+        require(tTokenIndex[config.tToken].exist,"config does not exist fo this gtoken");
+        uint index = tTokenIndex[config.tToken].index;
         tokenConfigInfo[index] = config;
     }
 
@@ -545,18 +545,18 @@ contract UniswapAnchoredView is  UniswapConfig, Ownable {
     }
 
     /**
-     * @notice Get the underlying price of a gToken
+     * @notice Get the underlying price of a tToken
      * @dev Implements the PriceOracle interface for Green Planet.
-     * @param gToken The gToken address for price retrieval
-     * @return Price denominated in USD, with 18 decimals, for the given gToken address
+     * @param tToken The tToken address for price retrieval
+     * @return Price denominated in USD, with 18 decimals, for the given tToken address
      */
-    function getUnderlyingPrice(address gToken) external view returns (uint) {
-        TokenConfig memory config = getTokenConfigByGToken(gToken);
+    function getUnderlyingPrice(address tToken) external view returns (uint) {
+        TokenConfig memory config = getTokenConfigByTToken(tToken);
          // Comptroller needs prices in the format: ${raw price} * 1e36 / baseUnit
          // The baseUnit of an asset is the amount of the smallest denomination of that asset per whole.
          // For example, the baseUnit of ETH is 1e18.
          // Since the prices in this view have 6 decimals, we must scale them by 1e(36 - 6)/baseUnit
-        uint256 baseUnit = getTokenConfigBySymbolHash(ethHash).gToken == config.gToken ? 1e18 : config.baseUnit;
+        uint256 baseUnit = getTokenConfigBySymbolHash(ethHash).tToken == config.tToken ? 1e18 : config.baseUnit;
         
         (,uint ans) = priceInternal(config);
         
@@ -568,25 +568,25 @@ contract UniswapAnchoredView is  UniswapConfig, Ownable {
     /**
      * @notice This is called when interest accrued in a market or by everyone
      * @dev called by reporter or owner
-     * @param gToken address
+     * @param tToken address
      * @return err uint , valid bool
      */
-    function validate(address gToken) external returns (Error,bool valid) {
+    function validate(address tToken) external returns (Error,bool valid) {
         
         
-        //Anyone can call validate if the market is calling it fetch the config using the Gtoken market address otherwise fetch the config using the gToken address given
+        //Anyone can call validate if the market is calling it fetch the config using the Gtoken market address otherwise fetch the config using the tToken address given
         // NOTE: We don't do any access control on msg.sender here. The access control is done in getTokenConfigByReporter,
         // which will REVERT if an unauthorized address is passed.
         
         //check for stables
-        TokenConfig memory usdConfig = getTokenConfigByGToken(gToken);
+        TokenConfig memory usdConfig = getTokenConfigByTToken(tToken);
         
         if(usdConfig.priceSource == PriceSource.FIXED_USD)
         return(Error.NO_ERROR,true);
         
-        TokenConfig memory config = getTokenConfigByGToken(msg.sender);
+        TokenConfig memory config = getTokenConfigByTToken(msg.sender);
         
-        config = config.gToken == msg.sender ? config : getTokenConfigByGToken(gToken);
+        config = config.tToken == msg.sender ? config : getTokenConfigByTToken(tToken);
 
         if(config.priceSource == PriceSource.UNISWAP){
 
@@ -724,7 +724,7 @@ contract UniswapAnchoredView is  UniswapConfig, Ownable {
         }
         
         uint256 unsignedPrice = uint256(reportedPrice);
-        uint256 baseUnit = getTokenConfigBySymbolHash(ethHash).gToken == config.gToken ? 1e18 : config.baseUnit;
+        uint256 baseUnit = getTokenConfigBySymbolHash(ethHash).tToken == config.tToken ? 1e18 : config.baseUnit;
         
         (Error err,uint temp) = mul(unsignedPrice, config.reporterMultiplier);
         
