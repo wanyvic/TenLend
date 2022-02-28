@@ -18,10 +18,6 @@ contract PriceOracle {
     function validate(address tToken) external returns(bool);
 }
 
-contract TenLotsInterface {
-    function updateAccPerShare(uint256 amount) external ;
-}
-
 
 contract TENTrollerInterface {
     /// @notice Indicator that this is a TENTroller contract (for inspection)
@@ -1425,9 +1421,11 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
                 delete userSupplyRecord[spender];
                 SupplyList.push(dst);
                 userSupplyRecord[dst].idx = SupplyList.length - 1;
+                userSupplyRecord[dst].isPresent = true;
             } else {
                         SupplyList.push(dst);
                         userSupplyRecord[dst].idx = SupplyList.length - 1;
+                        userSupplyRecord[dst].isPresent = true;
             }
         }
         
@@ -2016,7 +2014,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         /* We write previously calculated values into storage */
         totalSupply = vars.totalSupplyNew;
         accountTokens[redeemer] = vars.accountTokensNew;
-        if(vars.redeemAmount >= accountTokens[redeemer]){
+        if(vars.redeemAmount == accountTokens[redeemer]){
             uint256 idx = userSupplyRecord[redeemer].idx;
             address temp = SupplyList[idx];
             SupplyList[idx] = SupplyList[SupplyList.length - 1];
@@ -2238,7 +2236,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountBorrows[borrower].principal = vars.accountBorrowsNew;
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = vars.totalBorrowsNew;
-        if(repayAmount>=borrowBalanceStored(borrower)){
+        if(borrowBalanceStored(borrower) == 0){
             uint256 idx = userBorrowRecord[borrower].idx;
             address temp = BorrowList[idx];
             BorrowList[idx] = BorrowList[BorrowList.length - 1];
@@ -2669,7 +2667,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         // totalReserves - reduceAmount
         uint totalReservesNew;
 
-        // Check caller is admin
+        // Check caller is reduceReserveCaller
         if (msg.sender != reduceReserveCaller) {
             return fail(Error.UNAUTHORIZED, FailureInfo.REDUCE_RESERVES_ADMIN_CHECK);
         }
@@ -2707,16 +2705,9 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
             return fail(Error.MATH_ERROR,FailureInfo.REDUCE_RESERVES_VALIDATION);
         }
 
-        /* 
-        
-        this is an unfinished logic once done half of the amount 
-        will be sent to admin and half to the staking contract as reward
-        
-        */
-
         doTransferOut(admin, halfReduceAmount);
 
-        doTransferOut(admin, halfReduceAmount);
+        doTransferOut(msg.sender, halfReduceAmount);
 
         emit ReservesReduced(admin, reduceAmount, totalReservesNew);
 

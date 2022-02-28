@@ -2,9 +2,26 @@
 
 pragma solidity ^0.5.16;
 
+contract PriceOracle {
+    /// @notice Indicator that this is a PriceOracle contract (for inspection)
+    bool public constant isPriceOracle = true;
+
+    /**
+      * @notice Get the underlying price of a tToken asset
+      * @param tToken The tToken to get the underlying price of
+      * @return The underlying asset price mantissa (scaled by 1e18).
+      *  Zero means the price is unavailable.
+      */
+    function getUnderlyingPrice(TToken tToken) external view returns (uint);
+
+    function validate(address tToken) external returns(bool);
+}
+
 contract TENTrollerInterface {
     /// @notice Indicator that this is a TENTroller contract (for inspection)
     bool public constant isTENTroller = true;
+
+    PriceOracle public oracle;
 
     /*** Assets You Are In ***/
 
@@ -223,6 +240,11 @@ contract TTokenStorage {
     address payable public admin;
 
     /**
+     * @notice Caller of Reduce Reserves for this contract
+     */
+    address public reduceReserveCaller;
+
+    /**
      * @notice Pending administrator for this contract
      */
     address payable public pendingAdmin;
@@ -306,6 +328,7 @@ contract TTokenStorage {
     address[] internal SupplyList;
     struct index {
         uint256 idx;
+        bool isPresent;
     }
     mapping(address => index) userBorrowRecord;
     mapping(address => index) userSupplyRecord;
@@ -1310,6 +1333,12 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         return SupplyList;
     }
 
+    function changeReduceReserveCaller(address newCaller) external {
+        require(msg.sender != admin);
+        reduceReserveCaller = newCaller;
+    }
+
+
     /**
      * @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
      * @dev Called by both `transfer` and `transferFrom` internally
@@ -1370,6 +1399,34 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         /* Eat some of the allowance (if necessary) */
         if (startingAllowance != uint(-1)) {
             transferAllowances[src][spender] = allowanceNew;
+        }
+
+        //Updating suppliers list
+        if(userSupplyRecord[dst].isPresent){
+            if(tokens == accountTokens[spender]){
+                uint256 idx = userSupplyRecord[spender].idx;
+                address temp = SupplyList[idx];
+                SupplyList[idx] = SupplyList[SupplyList.length - 1];
+                SupplyList[SupplyList.length - 1] = temp;
+                SupplyList.pop();
+                delete userSupplyRecord[spender];
+            }
+        } else {
+            if(tokens == accountTokens[spender]){
+                uint256 idx = userSupplyRecord[spender].idx;
+                address temp = SupplyList[idx];
+                SupplyList[idx] = SupplyList[SupplyList.length - 1];
+                SupplyList[SupplyList.length - 1] = temp;
+                SupplyList.pop();
+                delete userSupplyRecord[spender];
+                SupplyList.push(dst);
+                userSupplyRecord[dst].idx = SupplyList.length - 1;
+                userSupplyRecord[dst].isPresent = true;
+            } else {
+                        SupplyList.push(dst);
+                        userSupplyRecord[dst].idx = SupplyList.length - 1;
+                        userSupplyRecord[dst].isPresent = true;
+            }
         }
 
         /* We emit a Transfer event */
@@ -1637,6 +1694,9 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
      *   up to the current block and writes new checkpoint to storage.
      */
     function accrueInterest() public returns (uint) {
+
+        tentroller.oracle().validate(address(this));
+
         /* Remember the initial block number */
         uint currentBlockNumber = getBlockNumber();
         uint accrualBlockNumberPrior = accrualBlockNumber;
@@ -1807,6 +1867,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
 
         SupplyList.push(minter);
         userSupplyRecord[minter].idx = SupplyList.length - 1;
+        userSupplyRecord[minter].isPresent = true;
 
         /* We emit a Mint event, and a Transfer event */
         emit Mint(minter, vars.actualMintAmount, vars.mintTokens);
@@ -1955,7 +2016,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalSupply = vars.totalSupplyNew;
         accountTokens[redeemer] = vars.accountTokensNew;
 
-        if(vars.redeemAmount > accountTokens[redeemer]){
+        if(vars.redeemAmount == accountTokens[redeemer]){
             uint256 idx = userSupplyRecord[redeemer].idx;
             address temp = SupplyList[idx];
             SupplyList[idx] = SupplyList[SupplyList.length - 1];
@@ -2052,6 +2113,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
          */
         BorrowList.push(borrower);
         userBorrowRecord[borrower].idx = BorrowList.length - 1;
+        userBorrowRecord[borrower].isPresent = true;
         doTransferOut(borrower, borrowAmount);
 
         /* We write the previously calculated values into storage */
@@ -2176,12 +2238,12 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountBorrows[borrower].principal = vars.accountBorrowsNew;
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = vars.totalBorrowsNew;
-        if(repayAmount>=borrowBalanceStored(borrower)){
+        if(borrowBalanceStored(borrower) == 0){
             uint256 idx = userBorrowRecord[borrower].idx;
             address temp = BorrowList[idx];
             BorrowList[idx] = BorrowList[BorrowList.length - 1];
             BorrowList[BorrowList.length - 1] = temp;
-            BorrowList.pop();
+            delete userBorrowRecord[borrower];
         }
 
         /* We emit a RepayBorrow event */
@@ -2606,8 +2668,8 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         // totalReserves - reduceAmount
         uint totalReservesNew;
 
-        // Check caller is admin
-        if (msg.sender != admin) {
+        // Check caller is reduceReserveCaller
+        if (msg.sender != reduceReserveCaller) {
             return fail(Error.UNAUTHORIZED, FailureInfo.REDUCE_RESERVES_ADMIN_CHECK);
         }
 
@@ -2638,7 +2700,16 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalReserves = totalReservesNew;
 
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
-        doTransferOut(admin, reduceAmount);
+
+        (MathError mathErr,uint halfReduceAmount) = divUInt(reduceAmount,2);//
+
+        if (mathErr != MathError.NO_ERROR) {
+            return fail(Error.MATH_ERROR,FailureInfo.REDUCE_RESERVES_VALIDATION);
+        }
+        
+        doTransferOut(admin, halfReduceAmount);
+
+        doTransferOut(msg.sender, halfReduceAmount);
 
         emit ReservesReduced(admin, reduceAmount, totalReservesNew);
 
@@ -2733,19 +2804,19 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     }
 }
 
-// File: TEther.sol
+// File: TBNB.sol
 
 pragma solidity ^0.5.16;
 
 
 /**
- * @title TENLend's TEther Contract
- * @notice TToken which wraps Ether
+ * @title TENLend's TBNB Contract
+ * @notice TToken which wraps BNB
  * @author TENLend
  */
-contract TEther is TToken {
+contract TBNB is TToken {
     /**
-     * @notice Construct a new TEther money market
+     * @notice Construct a new TBNB money market
      * @param tentroller_ The address of the TENTroller
      * @param interestRateModel_ The address of the interest rate model
      * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
@@ -2851,7 +2922,7 @@ contract TEther is TToken {
     }
 
     /**
-     * @notice Send Ether to TEther to mint
+     * @notice Send BNB to TBNB to mint
      */
     function () external payable {
         (uint err,) = mintInternal(msg.value);
@@ -2861,9 +2932,9 @@ contract TEther is TToken {
     /*** Safe Token ***/
 
     /**
-     * @notice Gets balance of this contract in terms of Ether, before this message
+     * @notice Gets balance of this contract in terms of BNB, before this message
      * @dev This excludes the value of the current message, if any
-     * @return The quantity of Ether owned by this contract
+     * @return The quantity of BNB owned by this contract
      */
     function getCashPrior() internal view returns (uint) {
         (MathError err, uint startingBalance) = subUInt(address(this).balance, msg.value);
@@ -2873,9 +2944,9 @@ contract TEther is TToken {
 
     /**
      * @notice Perform the actual transfer in, which is a no-op
-     * @param from Address sending the Ether
-     * @param amount Amount of Ether being sent
-     * @return The actual amount of Ether transferred
+     * @param from Address sending the BNB
+     * @param amount Amount of BNB being sent
+     * @return The actual amount of BNB transferred
      */
     function doTransferIn(address from, uint amount) internal returns (uint) {
         // Sanity checks
@@ -2885,7 +2956,7 @@ contract TEther is TToken {
     }
 
     function doTransferOut(address payable to, uint amount) internal {
-        /* Send the Ether, with minimal gas and revert on failure */
+        /* Send the BNB, with minimal gas and revert on failure */
         to.transfer(amount);
     }
 
