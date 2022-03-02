@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at BscScan.com on 2022-03-01
+*/
+
 // File: contracts\TENTrollerInterface.sol
 
 pragma solidity ^0.5.16;
@@ -223,6 +227,11 @@ contract TTokenStorage {
     address payable public admin;
 
     /**
+     * @notice Caller of Reduce Reserves for this contract
+     */
+    address public reduceReserveCaller;
+
+    /**
      * @notice Pending administrator for this contract
      */
     address payable public pendingAdmin;
@@ -304,6 +313,12 @@ contract TTokenStorage {
 
     address[] internal BorrowList;
     address[] internal SupplyList;
+    struct index {
+        uint256 idx;
+        bool isPresent;
+    }
+    mapping(address => index) userBorrowRecord;
+    mapping(address => index) userSupplyRecord;
 
 }
 

@@ -1,15 +1,12 @@
+/**
+ *Submitted for verification at BscScan.com on 2022-03-01
+*/
+
+// SPDX-License-Identifier: NONE
+
 pragma solidity >=0.8.0;
 pragma abicoder v2;
 
-
-import "./initializable.sol";
-// Part: Address
-
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/Address
-
-/**
- * @dev Collection of functions related to the address type
- */
 library Address {
     /**
      * @dev Returns true if `account` is a contract.
@@ -193,44 +190,19 @@ library Address {
     }
 }
 
-// Part: Context
 
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/Context
-
-/*
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with GSN meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract ContextUpgradeable is Initializable {
-    function __Context_init() internal onlyInitializing {
-    }
-
-    function __Context_init_unchained() internal onlyInitializing {
-    }
+abstract contract Context {
     function _msgSender() internal view virtual returns (address) {
         return msg.sender;
     }
 
-    function _msgData() internal view virtual returns (bytes calldata) {
+    function _msgData() internal view virtual returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
         return msg.data;
     }
-
-    uint256[50] private __gap;
 }
 
-// Part: IERC20
 
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/IERC20
-
-/**
- * @dev Interface of the ERC20 standard as defined in the EIP.
- */
 interface IERC20 {
     /**
      * @dev Returns the amount of tokens in existence.
@@ -302,13 +274,6 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-// Part: Math
-
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/Math
-
-/**
- * @dev Standard math utilities missing in the Solidity language.
- */
 library Math {
     /**
      * @dev Returns the largest of two numbers.
@@ -334,27 +299,8 @@ library Math {
     }
 }
 
-// Part: ReentrancyGuard
 
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/ReentrancyGuard
-
-/**
- * @dev Contract module that helps prevent reentrant calls to a function.
- *
- * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier
- * available, which can be applied to functions to make sure there are no nested
- * (reentrant) calls to them.
- *
- * Note that because there is a single `nonReentrant` guard, functions marked as
- * `nonReentrant` may not call one another. This can be worked around by making
- * those functions `private`, and then adding `external` `nonReentrant` entry
- * points to them.
- *
- * TIP: If you would like to learn more about reentrancy and alternative ways
- * to protect against it, check out our blog post
- * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].
- */
-abstract contract ReentrancyGuardUpgradeable is Initializable {
+abstract contract ReentrancyGuard {
     // Booleans are more expensive than uint256 or any type that takes up a full
     // word because each write operation emits an extra SLOAD to first read the
     // slot's contents, replace the bits taken up by the boolean, and then write
@@ -371,11 +317,7 @@ abstract contract ReentrancyGuardUpgradeable is Initializable {
 
     uint256 private _status;
 
-    function __ReentrancyGuard_init() internal onlyInitializing {
-        __ReentrancyGuard_init_unchained();
-    }
-
-    function __ReentrancyGuard_init_unchained() internal onlyInitializing {
+    constructor () {
         _status = _NOT_ENTERED;
     }
 
@@ -383,7 +325,7 @@ abstract contract ReentrancyGuardUpgradeable is Initializable {
      * @dev Prevents a contract from calling itself, directly or indirectly.
      * Calling a `nonReentrant` function from another `nonReentrant`
      * function is not supported. It is possible to prevent this from happening
-     * by making the `nonReentrant` function external, and making it call a
+     * by making the `nonReentrant` function external, and make it call a
      * `private` function that does the actual work.
      */
     modifier nonReentrant() {
@@ -399,27 +341,8 @@ abstract contract ReentrancyGuardUpgradeable is Initializable {
         // https://eips.ethereum.org/EIPS/eip-2200)
         _status = _NOT_ENTERED;
     }
-
-    uint256[49] private __gap;
 }
 
-// Part: SafeMath
-
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/SafeMath
-
-/**
- * @dev Wrappers over Solidity's arithmetic operations with added overflow
- * checks.
- *
- * Arithmetic operations in Solidity wrap on overflow. This can easily result
- * in bugs, because programmers usually assume that an overflow raises an
- * error, which is the standard behavior in high level programming languages.
- * `SafeMath` restores this intuition by reverting the transaction when an
- * operation overflows.
- *
- * Using this library instead of the unchecked operations eliminates an entire
- * class of bugs, so it's recommended to use it always.
- */
 library SafeMath {
     /**
      * @dev Returns the addition of two unsigned integers, with an overflow flag.
@@ -511,7 +434,7 @@ library SafeMath {
     /**
      * @dev Returns the multiplication of two unsigned integers, reverting on
      * overflow.
-     *
+     *a
      * Counterpart to Solidity's `*` operator.
      *
      * Requirements:
@@ -618,31 +541,8 @@ library SafeMath {
     }
 }
 
-// Part: IMintableToken
 
-// Part: IMintableToken
-
-interface IMintableToken is IERC20 {
-    function mint(address _receiver, uint256 _amount) external returns (bool);
-}
-
-// Part: Ownable
-
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/Ownable
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-abstract contract OwnableUpgradeable is Initializable, ContextUpgradeable {
+abstract contract Ownable is Context {
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -650,12 +550,10 @@ abstract contract OwnableUpgradeable is Initializable, ContextUpgradeable {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    function __Ownable_init() internal onlyInitializing {
-        __Ownable_init_unchained();
-    }
-
-    function __Ownable_init_unchained() internal onlyInitializing {
-        _transferOwnership(_msgSender());
+    constructor () {
+        address msgSender = _msgSender();
+        _owner = msgSender;
+        emit OwnershipTransferred(address(0), msgSender);
     }
 
     /**
@@ -681,7 +579,8 @@ abstract contract OwnableUpgradeable is Initializable, ContextUpgradeable {
      * thereby removing any functionality that is only available to the owner.
      */
     function renounceOwnership() public virtual onlyOwner {
-        _transferOwnership(address(0));
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
     }
 
     /**
@@ -690,35 +589,12 @@ abstract contract OwnableUpgradeable is Initializable, ContextUpgradeable {
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Internal function without access restriction.
-     */
-    function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _owner;
+        emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
     }
-
-    uint256[49] private __gap;
 }
 
-// Part: SafeERC20
 
-// Part: OpenZeppelin/openzeppelin-contracts@3.4.0/SafeERC20
-
-/**
- * @title SafeERC20
- * @dev Wrappers around ERC20 operations that throw on failure (when the token
- * contract returns false). Tokens that return no value (and instead revert or
- * throw on failure) are also supported, non-reverting calls are assumed to be
- * successful.
- * To use this library you can add a `using SafeERC20 for IERC20;` statement to your contract,
- * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
- */
 library SafeERC20 {
     using SafeMath for uint256;
     using Address for address;
@@ -778,15 +654,10 @@ library SafeERC20 {
     }
 }
 
-
-// EPS Staking contract for http://ellipsis.finance/
-// EPS staked within this contact entitles stakers to a portion of the admin fees generated by Ellipsis' AMM contracts
-// Based on SNX MultiRewards by iamdefinitelyahuman - https://github.com/iamdefinitelyahuman/multi-rewards
-contract MultiFeeDistribution is Initializable , OwnableUpgradeable , ReentrancyGuardUpgradeable{
+contract MultiFeeDistribution is ReentrancyGuard, Ownable {
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    using SafeERC20 for IMintableToken;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -795,188 +666,229 @@ contract MultiFeeDistribution is Initializable , OwnableUpgradeable , Reentrancy
         uint256 rewardRate;
         uint256 lastUpdateTime;
         uint256 rewardPerTokenStored;
+        uint256 penaltyPeriodFinish;
+        uint256 penaltyRewardRate;
+        uint256 penaltyLastUpdateTime;
+        uint256 penaltyRewardPerTokenStored;
     }
+
     struct Balances {
         uint256 total;
-        uint256 unlocked;
         uint256 locked;
-        // uint256 earned;
+        uint256 staked;
     }
+
     struct LockedBalance {
         uint256 amount;
         uint256 unlockTime;
     }
+
+    struct StakedBalance {
+        uint256 amount;
+        uint256 unlockTime;
+        uint256 reward;
+        uint256 userRewardPerTokenPaid;
+    }
+
     struct RewardData {
-        address token;
         uint256 amount;
     }
 
-    uint256 perCent;
 
-    IMintableToken public stakingToken;
-    address[] public rewardTokens;
+
+    IERC20 public immutable stakingToken;
+    address public rewardToken;
     mapping(address => Reward) public rewardData;
 
     // Duration that rewards are streamed over
-    uint256 public constant rewardsDuration = 86400 * 7;
+    uint256  constant rewardsDuration = 200000;
 
     // Duration of lock/earned penalty period
-    uint256 public constant lockDuration = rewardsDuration * 13;
+    uint256  constant lockDuration =  1200;
 
-    // Addresses approved to call mint
-    mapping(address => bool) public minters;
-    // reward token -> distributor -> is approved to add rewards
-    mapping(address=> mapping(address => bool)) public rewardDistributors;
+    uint[3] public penaltyPercentage;
 
-    // user -> reward token -> amount
-    mapping(address => mapping(address => uint256)) public userRewardPerTokenPaid;
-    mapping(address => mapping(address => uint256)) public rewards;
+    uint public denominator=10000;
+  
+    // distributor -> is approved to add rewards
+    mapping(address => bool) public rewardDistributors;
+
+    // user -> amount
+    mapping(address =>  uint256) public userLockedRewardPerTokenPaid;
+    mapping(address => uint256) public lockedRewards;
+
+    mapping(address =>  uint256) public userPenaltyRewardPerTokenPaid;
+    mapping(address => uint256) public penaltyRewards;
+
+
+    mapping(address =>uint256) public claimedRewards;
 
     uint256 public totalSupply;
     uint256 public lockedSupply;
+    uint256  public stakedSupply;
 
-    // Private mappings for balance data
-    mapping(address => Balances) private balances;
-    mapping(address => LockedBalance[]) private userLocks;
-    // mapping(address => LockedBalance[]) private userEarnings;
+    //  mappings for balance data
+    mapping(address => Balances) public balances;
+    mapping(address => LockedBalance[]) public userLocks;
+    mapping(address => StakedBalance[]) public userStakes;
 
     /* ========== CONSTRUCTOR ========== */
 
-    function initialize(
-        address _stakingToken
-        // address[] memory _minters
-    ) public initializer {
-        __Ownable_init();
-        __ReentrancyGuard_init();
-        stakingToken = IMintableToken(_stakingToken);
-        // for (uint i; i < _minters.length; i++) {
-        //     minters[_minters[i]] = true;
-        // }
-        // First reward MUST be the staking token or things will break
-        // related to the 50% penalty and distribution to locked balances
-        rewardTokens.push(_stakingToken);
-        rewardData[_stakingToken].lastUpdateTime = block.timestamp;
+    constructor(address _stakingToken,address _rewardToken,uint[3] memory _penalty) Ownable() {
+        penaltyPercentage=_penalty;
+        stakingToken =IERC20(_stakingToken);
+        rewardToken = _rewardToken;
+        rewardDistributors[msg.sender] = true;
     }
 
-    /* ========== ADMIN CONFIGURATION ========== */
-
-    // Add a new reward token to be distributed to stakers
-    function addReward(
-        address _rewardsToken,
-        address _distributor
-    )
-        public
-        onlyOwner
-    {
-        require(rewardData[_rewardsToken].lastUpdateTime == 0);
-        rewardTokens.push(_rewardsToken);
-        rewardData[_rewardsToken].lastUpdateTime = block.timestamp;
-        rewardData[_rewardsToken].periodFinish = block.timestamp;
-        rewardDistributors[_rewardsToken][_distributor] = true;
+    function changePenaltyPercentgae(uint[3] memory _penalty)external onlyOwner{
+        penaltyPercentage=_penalty;
     }
 
     // Modify approval for an address to call notifyRewardAmount
-    function approveRewardDistributor(
-        address _rewardsToken,
-        address _distributor,
-        bool _approved
-    ) external onlyOwner {
-        require(rewardData[_rewardsToken].lastUpdateTime > 0);
-        rewardDistributors[_rewardsToken][_distributor] = _approved;
+    function approveRewardDistributor(address _distributor,bool _approved) external onlyOwner {
+        rewardDistributors[_distributor] = _approved;
     }
 
     /* ========== VIEWS ========== */
 
-    function _rewardPerToken(address _rewardsToken, uint256 _supply) internal view returns (uint256) {
+    function userLocksCount(address _user) external view returns(uint){
+        return userLocks[_user].length;
+    }
+
+    function userStakingCount(address _user) external view returns(uint){
+        return userStakes[_user].length;
+    }
+
+
+
+    function _rewardPerToken(uint256 _supply) internal view returns (uint256) {
         if (_supply == 0) {
-            return rewardData[_rewardsToken].rewardPerTokenStored;
+            return rewardData[rewardToken].rewardPerTokenStored;
         }
         return
-            rewardData[_rewardsToken].rewardPerTokenStored.add(
-                lastTimeRewardApplicable(_rewardsToken).sub(
-                    rewardData[_rewardsToken].lastUpdateTime).mul(
-                        rewardData[_rewardsToken].rewardRate).mul(1e18).div(_supply)
+            rewardData[rewardToken].rewardPerTokenStored.add(
+                lastTimeRewardApplicable(false).sub(
+                    rewardData[rewardToken].lastUpdateTime).mul(
+                        rewardData[rewardToken].rewardRate).mul(1e18).div(_supply)
+            );
+    }
+
+    function _penaltyRewardPerToken( uint256 _supply) internal view returns (uint256) {
+        if (_supply == 0) {
+            return rewardData[rewardToken].penaltyRewardPerTokenStored;
+        }
+        return
+            rewardData[rewardToken].penaltyRewardPerTokenStored.add(
+                lastTimeRewardApplicable(true).sub(
+                    rewardData[rewardToken].penaltyLastUpdateTime).mul(
+                        rewardData[rewardToken].penaltyRewardRate).mul(1e18).div(_supply)
             );
     }
 
     function _earned(
         address _user,
-        address _rewardsToken,
+        uint256 _index,
         uint256 _balance,
-        uint256 supply
+        uint256 _supply,
+        bool _lock
     ) internal view returns (uint256) {
+        if(!_lock){
+            return _balance.mul(
+                _rewardPerToken( _supply).sub(userStakes[_user][_index].userRewardPerTokenPaid)
+                ).div(1e18).add(userStakes[_user][_index].reward);
+        }else{
+            return _balance.mul(
+                _rewardPerToken( _supply).sub(userLockedRewardPerTokenPaid[_user])
+                ).div(1e18).add(lockedRewards[_user]);
+        }
+    }
+
+    function _penaltyEarned(address _user,uint256 _balance,uint _supply)internal view returns(uint256){
         return _balance.mul(
-            _rewardPerToken(_rewardsToken, supply).sub(userRewardPerTokenPaid[_user][_rewardsToken])
-        ).div(1e18).add(rewards[_user][_rewardsToken]);
+                _penaltyRewardPerToken( _supply).sub(userPenaltyRewardPerTokenPaid[_user])
+                ).div(1e18).add(penaltyRewards[_user]);
+                
     }
 
-    function lastTimeRewardApplicable(address _rewardsToken) public view returns (uint256) {
-        return Math.min(block.timestamp, rewardData[_rewardsToken].periodFinish);
+    function lastTimeRewardApplicable(bool penalty) public view returns (uint256) {
+        if(!penalty){
+            return Math.min(block.timestamp, rewardData[rewardToken].periodFinish);
+        }
+        else{
+             return Math.min(block.timestamp, rewardData[rewardToken].penaltyPeriodFinish);
+        }
+        
     }
 
-    function rewardPerToken(address _rewardsToken) external view returns (uint256) {
-        uint256 supply = _rewardsToken == address(stakingToken) ? lockedSupply : totalSupply;
-        return _rewardPerToken(_rewardsToken, supply);
-
+    function rewardPerToken(bool penalty) external view returns (uint256) {
+        if(!penalty){
+            return _rewardPerToken(totalSupply);
+        }else{
+            return _penaltyRewardPerToken(lockedSupply);
+        }
     }
 
-    function getRewardForDuration(address _rewardsToken) external view returns (uint256) {
-        return rewardData[_rewardsToken].rewardRate.mul(rewardsDuration);
+    function getRewardForDuration(bool penalty) external view returns (uint256) {
+        if(!penalty){
+            return rewardData[rewardToken].rewardRate.mul(rewardsDuration);
+        }else{
+            return rewardData[rewardToken].penaltyRewardRate.mul(rewardsDuration);
+        }
+        
     }
 
     // Address and claimable amount of all reward tokens for the given account
-    function claimableRewards(address account) external view returns (RewardData[] memory rewardAmount) {
-        rewardAmount = new RewardData[](rewardTokens.length);
-        for (uint256 i = 0; i < rewardAmount.length; i++) {
-            // If i == 0 this is the stakingReward, distribution is based on locked balances
-            uint256 balance = i == 0 ? balances[account].locked : balances[account].total;
-            uint256 supply = i == 0 ? lockedSupply : totalSupply;
-            rewardAmount[i].token = rewardTokens[i];
-            rewardAmount[i].amount = _earned(account, rewardAmount[i].token, balance, supply);
-        }
-        return rewardAmount;
-    }
-
-    // Total balance of an account, including unlocked, locked and earned tokens
-    function totalBalance(address user) view external returns (uint256 amount) {
-        return balances[user].total;
-    }
-
-    // Total withdrawable balance for an account to which no penalty is applied
-    function unlockedBalance(address user) view external returns (uint256 amount) {
-        amount = balances[user].unlocked;
-        LockedBalance[] storage locks = userLocks[msg.sender];
-        for (uint i = 0; i < locks.length; i++) {
-            if (locks[i].unlockTime > block.timestamp) {
+    function claimableRewardsWithoutPenalty(address account) external view returns (RewardData[] memory rewardsAmount) {
+        rewardsAmount = new RewardData[](2);
+        uint supply=totalSupply;
+        uint length=userStakes[account].length;
+        for(uint j=0;j<length;j++){
+            if(userStakes[account][j].unlockTime > block.timestamp){
                 break;
             }
-            amount = amount.add(locks[i].amount);
+            rewardsAmount[0].amount += _earned(account, j, userStakes[account][j].amount, supply,false);
+        }
+        rewardsAmount[0].amount += _earned(account,0,balances[account].locked,supply,true);
+
+        rewardsAmount[1].amount = _penaltyEarned(account,balances[account].locked,lockedSupply);
+
+        return rewardsAmount;  
+    }
+
+    // Address and claimable amount of all reward tokens for the given account
+    function claimableRewards(address account) external view returns (RewardData[] memory rewardsAmount) {
+        rewardsAmount = new RewardData[](2);
+        uint supply=totalSupply;
+        uint length=userStakes[account].length;
+        for(uint j=0;j<length;j++){
+            rewardsAmount[0].amount += _earned(account, j, userStakes[account][j].amount, supply,false);
+        }
+        rewardsAmount[0].amount += _earned(account,0,balances[account].locked,supply,true);
+
+        rewardsAmount[1].amount = _penaltyEarned(account,balances[account].locked,lockedSupply);
+
+        return rewardsAmount;  
+    }
+
+    
+
+    /* // Total balance of an account, including unlocked, locked and earned tokens
+    function totalBalance(address user) view external returns (uint256 amount) {
+        return balances[user].total;
+    } */
+
+    // Total withdrawable balance for an account to which no penalty is applied
+    function unlockedBalanceWithoutPenalty(address user) view external returns (uint256 amount) {
+        StakedBalance[] storage stakes = userStakes[user];
+        for (uint i = 0; i < stakes.length; i++) {
+            if (stakes[i].unlockTime > block.timestamp) {
+                break;
+            }
+            amount = amount.add(stakes[i].amount);
         }
         return amount;
     }
-
-    // Information on the "earned" balances of a user
-    // Earned balances may be withdrawn immediately for a 50% penalty
-    // function earnedBalances(
-    //     address user
-    // ) view external returns (
-    //     uint256 total,
-    //     LockedBalance[] memory earningsData
-    // ) {
-    //     LockedBalance[] storage earnings = userEarnings[user];
-    //     uint256 idx;
-    //     for (uint i = 0; i < earnings.length; i++) {
-    //         if (earnings[i].unlockTime > block.timestamp) {
-    //             if (idx == 0) {
-    //                 earningsData = new LockedBalance[](earnings.length - i);
-    //             }
-    //             earningsData[idx] = earnings[i];
-    //             idx++;
-    //             total = total.add(earnings[i].amount);
-    //         }
-    //     }
-    //     return (total, earningsData);
-    // }
 
     // Information on a user's locked balances
     function lockedBalances(
@@ -1005,29 +917,38 @@ contract MultiFeeDistribution is Initializable , OwnableUpgradeable , Reentrancy
     }
 
     // Final balance received and penalty balance paid by user upon calling exit
-    function withdrawableBalance(
-        address user
-    ) view public returns (
-        uint256 amount,
-        uint256 penaltyAmount
-    ) {
+    function withdrawableTotalRewards(address user) view public returns (uint256 totalRewards,uint256 penaltyAmount) {
         Balances storage bal = balances[user];
-        if (bal.locked > 0) {
-            uint256 amountWithoutPenalty;
-            uint256 length = userLocks[user].length;
+        uint supply=totalSupply;
+        if (bal.staked > 0) {
+            uint256 length = userStakes[user].length;
+            uint calcPenalty;
             for (uint i = 0; i < length; i++) {
-                uint256 lockedAmount = userLocks[user][i].amount;
-                if (lockedAmount == 0) continue;
-                if (userLocks[user][i].unlockTime > block.timestamp) {
-                    break;
-                }
-                amountWithoutPenalty = amountWithoutPenalty.add(lockedAmount);
-            }
+                calcPenalty=0;
+                uint256 stakedAmount = userStakes[user][i].amount;
+                uint256 rewardAmount= _earned(user, i, stakedAmount, supply,false);
+                if (stakedAmount == 0) continue;
+                if (userStakes[user][i].unlockTime > block.timestamp) {
+                    uint256 timeStaked = userStakes[user][i].unlockTime.sub(block.timestamp);
+                    if(timeStaked > 60 days){
+                        calcPenalty = rewardAmount.mul(penaltyPercentage[0]).div(denominator);
+                    }
+                    else if(timeStaked <= 60 days && timeStaked > 30 days){
+                        calcPenalty = rewardAmount.mul(penaltyPercentage[1]).div(denominator);
+                    }
+                    else if(timeStaked <= 30 days && timeStaked > 0 days){
+                        calcPenalty = rewardAmount.mul(penaltyPercentage[2]).div(denominator);
+                    }
 
-            penaltyAmount = bal.locked.sub(amountWithoutPenalty).mul(1e12).div(100).mul(10).div(1e12);
+                    penaltyAmount +=calcPenalty;
+                    totalRewards +=rewardAmount.sub(calcPenalty);
+                }else{
+                    totalRewards += rewardAmount;
+                }    
+            }
         }
-        amount = bal.unlocked.add(bal.locked).sub(penaltyAmount);
-        return (amount, penaltyAmount);
+        
+        return (totalRewards, penaltyAmount);
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -1050,92 +971,139 @@ contract MultiFeeDistribution is Initializable , OwnableUpgradeable , Reentrancy
                 userLocks[msg.sender][idx-1].amount = userLocks[msg.sender][idx-1].amount.add(amount);
             }
         } else {
-            bal.unlocked = bal.unlocked.add(amount);
+            stakedSupply = stakedSupply.add(amount);
+            bal.staked = bal.staked.add(amount);
+            uint256 unlockTime = block.timestamp.div(rewardsDuration).mul(rewardsDuration).add(lockDuration);
+            uint256 idx = userStakes[msg.sender].length;
+            if (idx == 0 || userStakes[msg.sender][idx-1].unlockTime < unlockTime) {
+                userStakes[msg.sender].push(StakedBalance({amount: amount, unlockTime: unlockTime,reward:0,userRewardPerTokenPaid:rewardData[rewardToken].rewardPerTokenStored}));
+            } else {
+                userStakes[msg.sender][idx-1].amount = userStakes[msg.sender][idx-1].amount.add(amount);
+            }
         }
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
 
-    // Withdraw staked tokens
-    // First withdraws unlocked tokens, then earned tokens. Withdrawing earned tokens
-    // incurs a 10% penalty which is distributed based on locked balances.
+  
+
+    // Withdraw staked tokens 
+    // incurs  penalty if withdraw before 90 days which is distributed based on locked balances.
     function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         Balances storage bal = balances[msg.sender];
         uint256 penaltyAmount;
-
-        if (amount <= bal.unlocked) {
-            bal.unlocked = bal.unlocked.sub(amount);
-        } else {
-            uint256 remaining = amount.sub(bal.unlocked);
-            require(bal.locked >= remaining, "Insufficient unlocked balance");
-            bal.unlocked = 0;
-            bal.locked = bal.locked.sub(remaining);
-            for (uint i = 0; ; i++) {
-                uint256 lockedAmount = userLocks[msg.sender][i].amount;
-                if (lockedAmount == 0) continue;
-                if (penaltyAmount == 0 && userLocks[msg.sender][i].unlockTime > block.timestamp) {
-                    penaltyAmount = remaining;
-                    require(bal.locked >= remaining, "Insufficient balance after penalty");
-                    bal.locked = bal.locked.sub(remaining);
-                    if (bal.locked == 0) {
-                        delete userLocks[msg.sender];
-                        break;
+        uint256 calcPenalty;
+        uint256 remaining = amount;
+        uint256 totalRewards;
+        require(bal.staked >= remaining, "Insufficient staked balance");
+        bal.staked = bal.staked.sub(remaining);
+        uint256 length=userStakes[msg.sender].length;
+        for (uint i = 0;i<length ; i++) {
+                calcPenalty = 0;
+                uint256 stakedAmount = userStakes[msg.sender][i].amount;
+                uint256 rewardAmount= userStakes[msg.sender][i].reward;
+                if (stakedAmount == 0) continue;
+                if (userStakes[msg.sender][i].unlockTime > block.timestamp) {
+                    uint256 penalty;
+                    if(stakedAmount>=remaining){
+                        penalty = remaining.mul(rewardAmount).div(stakedAmount);
                     }
-                    remaining = remaining.mul(1e12).div(100).mul(10).div(1e12);
-                }
-                if (remaining <= lockedAmount) {
-                    userLocks[msg.sender][i].amount = lockedAmount.sub(remaining);
-                    break;
-                } else {
-                    delete userLocks[msg.sender][i];
-                    remaining = remaining.sub(lockedAmount);
-                }
-            }
-        }
+                    else{
+                        penalty=rewardAmount;
+                    }
+                    uint256 timeStaked = userStakes[msg.sender][i].unlockTime.sub(block.timestamp);
+                    if(timeStaked > 60 days){
+                        calcPenalty = penalty.mul(penaltyPercentage[0]).div(denominator);
+                    }
+                    else if(timeStaked <= 60 days && timeStaked > 30 days){
+                        calcPenalty = penalty.mul(penaltyPercentage[1]).div(denominator);
+                    }
+                    else if(timeStaked <= 30 days && timeStaked > 0 days){
+                        calcPenalty = penalty.mul(penaltyPercentage[2]).div(denominator);
+                    }
 
-        uint256 adjustedAmount = amount.add(penaltyAmount);
-        bal.total = bal.total.sub(adjustedAmount);
-        totalSupply = totalSupply.sub(adjustedAmount);
+                    penaltyAmount +=calcPenalty;
+                    totalRewards +=rewardAmount.sub(calcPenalty);
+
+                    if (stakedAmount>= remaining) {
+                        userStakes[msg.sender][i].amount = stakedAmount.sub(remaining);
+                        userStakes[msg.sender][i].reward=0;
+                        break;
+                    } else {
+                        delete userStakes[msg.sender][i];
+                        remaining = remaining.sub(stakedAmount);
+                    }
+                }else{
+                    if (remaining <= stakedAmount) {
+                        totalRewards += rewardAmount;
+                        userStakes[msg.sender][i].reward=0;
+                        userStakes[msg.sender][i].amount = stakedAmount.sub(remaining);
+                        break;
+                    } else {
+                        totalRewards += rewardAmount;
+                        delete userStakes[msg.sender][i];
+                        remaining = remaining.sub(stakedAmount);
+                    }
+                }
+                
+            }
+        bal.total = bal.total.sub(amount);
+        totalSupply = totalSupply.sub(amount);
+        stakedSupply=stakedSupply.sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
+        IERC20(rewardToken).safeTransfer(msg.sender,totalRewards);
+        claimedRewards[msg.sender] = claimedRewards[msg.sender].add(totalRewards);
         if (penaltyAmount > 0) {
-            _notifyReward(address(stakingToken), penaltyAmount);
+            _notifyReward(rewardToken,penaltyAmount,true);
         }
         emit Withdrawn(msg.sender, amount);
     }
 
     // Claim all pending staking rewards
     function getReward() public nonReentrant updateReward(msg.sender) {
-        for (uint i; i < rewardTokens.length; i++) {
-            address _rewardsToken = rewardTokens[i];
-            uint256 reward = rewards[msg.sender][_rewardsToken];
-            if (reward > 0) {
-                rewards[msg.sender][_rewardsToken] = 0;
-                IERC20(_rewardsToken).safeTransfer(msg.sender, reward);
-                emit RewardPaid(msg.sender, _rewardsToken, reward);
+        uint length=userStakes[msg.sender].length;
+        address _rewardsToken = rewardToken;
+        uint totalRewards;
+        for(uint j=0;j<length;j++){
+            if(block.timestamp > userStakes[msg.sender][j].unlockTime){
+                totalRewards += userStakes[msg.sender][j].reward;
+                userStakes[msg.sender][j].reward=0;
             }
         }
+        totalRewards += lockedRewards[msg.sender];
+        lockedRewards[msg.sender]=0;
+        totalRewards += penaltyRewards[msg.sender];
+        penaltyRewards[msg.sender]=0;
+        claimedRewards[msg.sender] = claimedRewards[msg.sender].add(totalRewards);
+        if (totalRewards > 0) {    
+            IERC20(_rewardsToken).safeTransfer(msg.sender, totalRewards);
+            emit RewardPaid(msg.sender, _rewardsToken, totalRewards);
+        }  
     }
 
-    // Withdraw full unlocked balance and claim pending rewards
+    // Withdraw full staked balance and claim pending rewards
     function exit() external updateReward(msg.sender) {
-        (uint256 amount, uint256 penaltyAmount) = withdrawableBalance(msg.sender);
-        delete userLocks[msg.sender];
+        (uint256 totalRewards, uint256 penaltyAmount) = withdrawableTotalRewards(msg.sender);
+        delete userStakes[msg.sender];
+        
         Balances storage bal = balances[msg.sender];
-        bal.total = bal.total.sub(bal.unlocked).sub(bal.locked);
-        bal.unlocked = 0;
-        bal.locked = 0;
-
-        totalSupply = totalSupply.sub(amount.add(penaltyAmount));
+	    uint amount=bal.staked;
+        totalSupply=totalSupply.sub(amount);
+        stakedSupply=stakedSupply.sub(amount);
+        bal.total=bal.total.sub(amount);
+        bal.staked = 0;
         stakingToken.safeTransfer(msg.sender, amount);
+	    IERC20(rewardToken).safeTransfer(msg.sender,totalRewards);
+        claimedRewards[msg.sender] = claimedRewards[msg.sender].add(totalRewards);
         if (penaltyAmount > 0) {
-            _notifyReward(address(stakingToken), penaltyAmount);
+             _notifyReward(rewardToken,penaltyAmount,true);
         }
         getReward();
     }
 
     // Withdraw all currently locked tokens where the unlock time has passed
-    function withdrawExpiredLocks() external {
+    function withdrawExpiredLocks() external updateReward(msg.sender){
         LockedBalance[] storage locks = userLocks[msg.sender];
         Balances storage bal = balances[msg.sender];
         uint256 amount;
@@ -1159,27 +1127,40 @@ contract MultiFeeDistribution is Initializable , OwnableUpgradeable , Reentrancy
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function _notifyReward(address _rewardsToken, uint256 reward) internal {
-        if (block.timestamp >= rewardData[_rewardsToken].periodFinish) {
-            rewardData[_rewardsToken].rewardRate = reward.div(rewardsDuration);
-        } else {
-            uint256 remaining = rewardData[_rewardsToken].periodFinish.sub(block.timestamp);
-            uint256 leftover = remaining.mul(rewardData[_rewardsToken].rewardRate);
-            rewardData[_rewardsToken].rewardRate = reward.add(leftover).div(rewardsDuration);
+    function _notifyReward(address _rewardsToken, uint256 reward,bool penalty) internal {
+        if(penalty){
+             if (block.timestamp >= rewardData[_rewardsToken].penaltyPeriodFinish) {
+                rewardData[_rewardsToken].penaltyRewardRate = reward.div(rewardsDuration);
+            } else {
+                uint256 remaining = rewardData[_rewardsToken].penaltyPeriodFinish.sub(block.timestamp);
+                uint256 leftover = remaining.mul(rewardData[_rewardsToken].penaltyRewardRate);
+                rewardData[_rewardsToken].penaltyRewardRate = reward.add(leftover).div(rewardsDuration);
+            }
+
+            rewardData[_rewardsToken].penaltyLastUpdateTime = block.timestamp;
+            rewardData[_rewardsToken].penaltyPeriodFinish = block.timestamp.add(rewardsDuration);
+            emit penaltyRewardAdded(reward);
+        }else{
+             if (block.timestamp >= rewardData[_rewardsToken].periodFinish) {
+                rewardData[_rewardsToken].rewardRate = reward.div(rewardsDuration);
+            } else {
+                uint256 remaining = rewardData[_rewardsToken].periodFinish.sub(block.timestamp);
+                uint256 leftover = remaining.mul(rewardData[_rewardsToken].rewardRate);
+                rewardData[_rewardsToken].rewardRate = reward.add(leftover).div(rewardsDuration);
+            }
+
+            rewardData[_rewardsToken].lastUpdateTime = block.timestamp;
+            rewardData[_rewardsToken].periodFinish = block.timestamp.add(rewardsDuration);
         }
-
-        rewardData[_rewardsToken].lastUpdateTime = block.timestamp;
-        rewardData[_rewardsToken].periodFinish = block.timestamp.add(rewardsDuration);
-
     }
 
     function notifyRewardAmount(address _rewardsToken, uint256 reward) external updateReward(address(0)) {
-        require(rewardDistributors[_rewardsToken][msg.sender]);
+        require(rewardDistributors[msg.sender],"Not Authorized");
         require(reward > 0, "No reward");
         // handle the transfer of reward tokens via `transferFrom` to reduce the number
         // of transactions required and ensure correctness of the reward amount
         IERC20(_rewardsToken).safeTransferFrom(msg.sender, address(this), reward);
-        _notifyReward(_rewardsToken, reward);
+        _notifyReward(_rewardsToken, reward,false);
         emit RewardAdded(reward);
     }
 
@@ -1194,27 +1175,24 @@ contract MultiFeeDistribution is Initializable , OwnableUpgradeable , Reentrancy
     /* ========== MODIFIERS ========== */
 
     modifier updateReward(address account) {
-        address token = address(stakingToken);
-        uint256 balance;
-        uint256 supply = lockedSupply;
-        rewardData[token].rewardPerTokenStored = _rewardPerToken(token, supply);
-        rewardData[token].lastUpdateTime = lastTimeRewardApplicable(token);
-        if (account != address(0)) {
-            // Special case, use the locked balances and supply for stakingReward rewards
-            rewards[account][token] = _earned(account, token, balances[account].locked, supply);
-            userRewardPerTokenPaid[account][token] = rewardData[token].rewardPerTokenStored;
-            balance = balances[account].total;
-        }
-
+        uint256 supply;
         supply = totalSupply;
-        for (uint i = 1; i < rewardTokens.length; i++) {
-            token = rewardTokens[i];
-            rewardData[token].rewardPerTokenStored = _rewardPerToken(token, supply);
-            rewardData[token].lastUpdateTime = lastTimeRewardApplicable(token);
-            if (account != address(0)) {
-                rewards[account][token] = _earned(account, token, balance, supply);
-                userRewardPerTokenPaid[account][token] = rewardData[token].rewardPerTokenStored;
+        uint length=userStakes[account].length;
+        rewardData[rewardToken].rewardPerTokenStored = _rewardPerToken(supply);
+        rewardData[rewardToken].lastUpdateTime = lastTimeRewardApplicable(false);
+        rewardData[rewardToken].penaltyRewardPerTokenStored=_penaltyRewardPerToken(lockedSupply);
+        rewardData[rewardToken].penaltyLastUpdateTime = lastTimeRewardApplicable(true);
+        if (account != address(0)) {
+            for(uint j=0;j<length;j++){
+                userStakes[account][j].reward = _earned(account,j, userStakes[account][j].amount, supply,false);
+                userStakes[account][j].userRewardPerTokenPaid = rewardData[rewardToken].rewardPerTokenStored;
             }
+
+            lockedRewards[account]=_earned(account,0,balances[account].locked,supply,true);
+            userLockedRewardPerTokenPaid[account]=rewardData[rewardToken].rewardPerTokenStored;
+ 
+            penaltyRewards[account]=_penaltyEarned(account,balances[account].locked,lockedSupply);
+            userPenaltyRewardPerTokenPaid[account]=rewardData[rewardToken].penaltyRewardPerTokenStored;
         }
         _;
     }
@@ -1222,6 +1200,7 @@ contract MultiFeeDistribution is Initializable , OwnableUpgradeable , Reentrancy
     /* ========== EVENTS ========== */
 
     event RewardAdded(uint256 reward);
+    event penaltyRewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, address indexed rewardsToken, uint256 reward);

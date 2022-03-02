@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at BscScan.com on 2022-03-01
+*/
+
 // File: contracts\TENTrollerInterface.sol
 
 pragma solidity ^0.5.16;
@@ -1419,14 +1423,10 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
                 SupplyList[SupplyList.length - 1] = temp;
                 SupplyList.pop();
                 delete userSupplyRecord[spender];
+            }
                 SupplyList.push(dst);
                 userSupplyRecord[dst].idx = SupplyList.length - 1;
                 userSupplyRecord[dst].isPresent = true;
-            } else {
-                        SupplyList.push(dst);
-                        userSupplyRecord[dst].idx = SupplyList.length - 1;
-                        userSupplyRecord[dst].isPresent = true;
-            }
         }
         
 

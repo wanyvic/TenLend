@@ -946,50 +946,64 @@ interface TransferReward {
     function update() external;
 }
 
-interface LENDtStaking {
+interface tLENDStaking {
     function notifyRewardAmount(address _rewardsToken, uint256 reward) external;
 }
 
-contract sendReward is Ownable, ReentrancyGuard{
+contract RewardShare is Ownable, ReentrancyGuard{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     uint256 allow = 1e25;
 
     address[] public markets;
-    address routerAddress = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
+    address routerAddress = 0x10ED43C718714eb63d5aA57B78B54704E256024E; //Pancakeswap Router Address
     address wbnbAddress = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address BUSD = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
-    address TenLotsTransferReward = 0xA3647eB96fcaFA8DE3e361F45c94921DAeF79a92;
+    address TenLotsTransferReward = 0xA3647eB96fcaFA8DE3e361F45c94921DAeF79a92; //TenLoTs address
     address stakingContract;
     mapping(address => address[]) public marketPath;
 
+    // set staking contract address
     function setStakingContractAddress(address _contract) external onlyOwner {
         require(_contract != address(0),"Cannot be address 0");
         stakingContract = _contract;
     }
 
+    // Change Router Address
+    function changeRouterAddress(address _contract) external onlyOwner {
+        require(_contract != address(0),"Cannot be address 0");
+        routerAddress = _contract;
+    }
+
+    // Add Market along with Path for converion of underlying asset into BUSD
     function addMarket(address market, address[] memory path) external onlyOwner {
         require(market != address(0),"Cannot be address 0");
         markets.push(market);
         marketPath[market] = path;
     }
 
+    // Update the path of an already existing Market underlying asset conversion
     function updatePath(address market, address[] memory path) external onlyOwner {
         require(market != address(0),"Cannot be address 0");
         marketPath[market] = path;
     }
 
-    function distribute(uint amount) external onlyOwner() {
-        for(uint256 i; i < markets.length; ++i){
-            TENMarket(markets[i])._reduceReserves(amount);
-            if(marketPath[markets[i]][0] == wbnbAddress) {
+    /** 
+        @dev Calls ReduceReserve in a market
+            * withdraws underlying assets
+            * and convert it to BUSD for sending
+            * as reward into Tenlots and stakingContract
+     */
+    function distribute(uint amount, address _market) external onlyOwner() {
+            TENMarket(_market)._reduceReserves(amount);
+            if(marketPath[_market][0] == wbnbAddress) {
                 _wrapBNB(amount);
                 _safeSwap(
                     routerAddress,
-                    IERC20((marketPath[markets[i]])[0]).balanceOf(address(this)),
+                    IERC20((marketPath[_market])[0]).balanceOf(address(this)),
                     990,
-                    marketPath[markets[i]],
+                    marketPath[_market],
                     address(this),
                     block.timestamp.add(600)
                 ); 
@@ -998,26 +1012,26 @@ contract sendReward is Ownable, ReentrancyGuard{
                 TransferReward(TenLotsTransferReward).update();
                 emit sentReward(balance.div(2), TenLotsTransferReward);
                 _approveTokenIfNeeded(BUSD,stakingContract);
-                LENDtStaking(stakingContract).notifyRewardAmount(BUSD,balance.div(2));
+                tLENDStaking(stakingContract).notifyRewardAmount(BUSD,balance.div(2));
                 emit sentReward(balance.div(2), stakingContract);
                 
             }
-            else if(marketPath[markets[i]][0] == BUSD) {
+            else if(marketPath[_market][0] == BUSD) {
                 uint256 balance = IERC20(BUSD).balanceOf(address(this));
                 IERC20(BUSD).safeTransfer(TenLotsTransferReward,balance.div(2));
                 TransferReward(TenLotsTransferReward).update();
                 emit sentReward(balance.div(2), TenLotsTransferReward);
                 _approveTokenIfNeeded(BUSD,stakingContract);
-                LENDtStaking(stakingContract).notifyRewardAmount(BUSD,balance.div(2));
+                tLENDStaking(stakingContract).notifyRewardAmount(BUSD,balance.div(2));
                 emit sentReward(balance.div(2), stakingContract);
 
             }
             else {
                 _safeSwap(
                     routerAddress,
-                    IERC20((marketPath[markets[i]])[0]).balanceOf(address(this)),
+                    IERC20((marketPath[_market])[0]).balanceOf(address(this)),
                     990,
-                    marketPath[markets[i]],
+                    marketPath[_market],
                     address(this),
                     block.timestamp.add(600)
                 ); 
@@ -1026,10 +1040,9 @@ contract sendReward is Ownable, ReentrancyGuard{
                 TransferReward(TenLotsTransferReward).update();
                 emit sentReward(balance.div(2), TenLotsTransferReward);
                 _approveTokenIfNeeded(BUSD,stakingContract);
-                LENDtStaking(stakingContract).notifyRewardAmount(BUSD,balance.div(2));
+                tLENDStaking(stakingContract).notifyRewardAmount(BUSD,balance.div(2));
                 emit sentReward(balance.div(2), stakingContract);
             }
-        }
     }
 
     function _approveTokenIfNeeded(address token, address _routerAddress) private {
@@ -1060,9 +1073,7 @@ contract sendReward is Ownable, ReentrancyGuard{
         return _returned;
     }
 
-    receive() external payable{
-        require(msg.sender == wbnbAddress);
-    }
+    receive() external payable{}
 
     function _wrapBNB( uint256 amount) internal {
         if (amount > 0) {
