@@ -1,5 +1,5 @@
 
-// File: lendtoundContracts/EIP20Interface.sol
+// File: tenfinanceContracts/EIP20Interface.sol
 
 pragma solidity ^0.5.16;
 
@@ -63,13 +63,13 @@ interface EIP20Interface {
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
 }
-// File: lendtoundContracts/ExponentialNoError.sol
+// File: tenfinanceContracts/ExponentialNoError.sol
 
 pragma solidity ^0.5.16;
 
 /**
  * @title Exponential module for storing fixed-precision decimals
- * @author LENDtound
+ * @author compound
  * @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
  *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
  *         `Exp({mantissa: 5100000000000000000})`.
@@ -260,13 +260,13 @@ contract ExponentialNoError {
         return Double({mantissa: div_(mul_(a, doubleScale), b)});
     }
 }
-// File: lendtoundContracts/CarefulMath.sol
+// File: tenfinanceContracts/CarefulMath.sol
 
 pragma solidity ^0.5.16;
 
 /**
   * @title Careful Math
-  * @author LENDtound
+  * @author compound
   * @notice Derived from OpenZeppelin's SafeMath library
   *         https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/math/SafeMath.sol
   */
@@ -347,7 +347,7 @@ contract CarefulMath {
         return subUInt(sum, c);
     }
 }
-// File: lendtoundContracts/Exponential.sol
+// File: tenfinanceContracts/Exponential.sol
 
 pragma solidity ^0.5.16;
 
@@ -355,7 +355,7 @@ pragma solidity ^0.5.16;
 
 /**
  * @title Exponential module for storing fixed-precision decimals
- * @author LENDtound
+ * @author compound
  * @dev Legacy contract for lendtatibility reasons with existing contracts that still use MathError
  * @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
  *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
@@ -531,7 +531,7 @@ contract Exponential is CarefulMath, ExponentialNoError {
         return getExp(a.mantissa, b.mantissa);
     }
 }
-// File: lendtoundContracts/EIP20NonStandardInterface.sol
+// File: tenfinanceContracts/EIP20NonStandardInterface.sol
 
 pragma solidity ^0.5.16;
 
@@ -603,13 +603,13 @@ interface EIP20NonStandardInterface {
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
 }
-// File: lendtoundContracts/InterestRateModel.sol
+// File: tenfinanceContracts/InterestRateModel.sol
 
 pragma solidity ^0.5.16;
 
 /**
-  * @title LENDtound's InterestRateModel Interface
-  * @author LENDtound
+  * @title compound's InterestRateModel Interface
+  * @author compound
   */
 contract InterestRateModel {
     /// @notice Indicator that this is an InterestRateModel contract (for inspection)
@@ -635,7 +635,7 @@ contract InterestRateModel {
     function getSupplyRate(uint cash, uint borrows, uint reserves, uint reserveFactorMantissa) external view returns (uint);
 
 }
-// File: lendtoundContracts/TENTrollerInterface.sol
+// File: tenfinanceContracts/TENTrollerInterface.sol
 
 pragma solidity ^0.5.16;
 
@@ -708,7 +708,7 @@ contract TENTrollerInterface {
         address tTokenCollateral,
         uint repayAmount) external view returns (uint, uint);
 }
-// File: lendtoundContracts/TTokenInterfaces.sol
+// File: tenfinanceContracts/TTokenInterfaces.sol
 
 pragma solidity ^0.5.16;
 
@@ -1019,7 +1019,7 @@ contract CDelegateInterface is CDelegationStorage {
      */
     function _resignImplementation() public;
 }
-// File: lendtoundContracts/ErrorReporter.sol
+// File: tenfinanceContracts/ErrorReporter.sol
 
 pragma solidity ^0.5.16;
 
@@ -1228,7 +1228,7 @@ contract TokenErrorReporter {
         return uint(err);
     }
 }
-// File: lendtoundContracts/TToken.sol
+// File: tenfinanceContracts/TToken.sol
 
 pragma solidity ^0.5.16;
 
@@ -1239,9 +1239,9 @@ pragma solidity ^0.5.16;
 
 
 /**
- * @title LENDtound's TToken Contract
+ * @title compound's TToken Contract
  * @notice Abstract base for TTokens
- * @author LENDtound
+ * @author compound
  */
 contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     /**
@@ -2687,7 +2687,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         _notEntered = true; // get a gas-refund post-Istanbul
     }
 }
-// File: lendtoundContracts/PriceOracle.sol
+// File: tenfinanceContracts/PriceOracle.sol
 
 pragma solidity ^0.5.16;
 
@@ -2704,7 +2704,7 @@ contract PriceOracle {
       */
     function getUnderlyingPrice(TToken tToken) external view returns (uint);
 }
-// File: lendtoundContracts/TENTrollerStorage.sol
+// File: tenfinanceContracts/TENTrollerStorage.sol
 
 pragma solidity ^0.5.16;
 
@@ -2850,7 +2850,7 @@ contract TENTrollerV5Storage is TENTrollerV4Storage {
     /// @notice Last block at which a contributor's LENDT rewards have been allocated
     mapping(address => uint) public lastContributorBlock;
 }
-// File: lendtoundContracts/Unitroller.sol
+// File: tenfinanceContracts/Unitroller.sol
 
 pragma solidity ^0.5.16;
 
