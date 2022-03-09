@@ -2696,19 +2696,19 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     }
 }
 
-// File: TEther.sol
+// File: TBNB.sol
 
 pragma solidity ^0.5.16;
 
 
 /**
- * @title TENLend's TEther Contract
- * @notice TToken which wraps Ether
+ * @title TENLend's TBNB Contract
+ * @notice TToken which wraps BNB
  * @author TENLend
  */
-contract TEther is TToken {
+contract TBNB is TToken {
     /**
-     * @notice Construct a new TEther money market
+     * @notice Construct a new TBNB money market
      * @param tentroller_ The address of the TENTroller
      * @param interestRateModel_ The address of the interest rate model
      * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
@@ -2814,7 +2814,7 @@ contract TEther is TToken {
     }
 
     /**
-     * @notice Send Ether to TEther to mint
+     * @notice Send BNB to TBNB to mint
      */
     function () external payable {
         (uint err,) = mintInternal(msg.value);
@@ -2824,9 +2824,9 @@ contract TEther is TToken {
     /*** Safe Token ***/
 
     /**
-     * @notice Gets balance of this contract in terms of Ether, before this message
+     * @notice Gets balance of this contract in terms of BNB, before this message
      * @dev This excludes the value of the current message, if any
-     * @return The quantity of Ether owned by this contract
+     * @return The quantity of BNB owned by this contract
      */
     function getCashPrior() internal view returns (uint) {
         (MathError err, uint startingBalance) = subUInt(address(this).balance, msg.value);
@@ -2836,9 +2836,9 @@ contract TEther is TToken {
 
     /**
      * @notice Perform the actual transfer in, which is a no-op
-     * @param from Address sending the Ether
-     * @param amount Amount of Ether being sent
-     * @return The actual amount of Ether transferred
+     * @param from Address sending the BNB
+     * @param amount Amount of BNB being sent
+     * @return The actual amount of BNB transferred
      */
     function doTransferIn(address from, uint amount) internal returns (uint) {
         // Sanity checks
@@ -2848,7 +2848,7 @@ contract TEther is TToken {
     }
 
     function doTransferOut(address payable to, uint amount) internal {
-        /* Send the Ether, with minimal gas and revert on failure */
+        /* Send the BNB, with minimal gas and revert on failure */
         to.transfer(amount);
     }
 
@@ -2885,40 +2885,40 @@ pragma solidity ^0.5.16;
  */
 contract Maximillion {
     /**
-     * @notice The default tEther market to repay in
+     * @notice The default tBNB market to repay in
      */
-    TEther public tEther;
+    TBNB public tBNB;
 
     /**
-     * @notice Construct a Maximillion to repay max in a TEther market
+     * @notice Construct a Maximillion to repay max in a TBNB market
      */
-    constructor(TEther tEther_) public {
-        tEther = tEther_;
+    constructor(TBNB tBNB_) public {
+        tBNB = tBNB_;
     }
 
     /**
-     * @notice msg.sender sends Ether to repay an account's borrow in the tEther market
-     * @dev The provided Ether is applied towards the borrow balance, any excess is refunded
+     * @notice msg.sender sends BNB to repay an account's borrow in the tBNB market
+     * @dev The provided BNB is applied towards the borrow balance, any excess is refunded
      * @param borrower The address of the borrower account to repay on behalf of
      */
     function repayBehalf(address borrower) public payable {
-        repayBehalfExplicit(borrower, tEther);
+        repayBehalfExplicit(borrower, tBNB);
     }
 
     /**
-     * @notice msg.sender sends Ether to repay an account's borrow in a tEther market
-     * @dev The provided Ether is applied towards the borrow balance, any excess is refunded
+     * @notice msg.sender sends BNB to repay an account's borrow in a tBNB market
+     * @dev The provided BNB is applied towards the borrow balance, any excess is refunded
      * @param borrower The address of the borrower account to repay on behalf of
-     * @param tEther_ The address of the tEther contract to repay in
+     * @param tBNB_ The address of the tBNB contract to repay in
      */
-    function repayBehalfExplicit(address borrower, TEther tEther_) public payable {
+    function repayBehalfExplicit(address borrower, TBNB tBNB_) public payable {
         uint received = msg.value;
-        uint borrows = tEther_.borrowBalanceCurrent(borrower);
+        uint borrows = tBNB_.borrowBalanceCurrent(borrower);
         if (received > borrows) {
-            tEther_.repayBorrowBehalf.value(borrows)(borrower);
+            tBNB_.repayBorrowBehalf.value(borrows)(borrower);
             msg.sender.transfer(received - borrows);
         } else {
-            tEther_.repayBorrowBehalf.value(received)(borrower);
+            tBNB_.repayBorrowBehalf.value(received)(borrower);
         }
     }
 }

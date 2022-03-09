@@ -2807,7 +2807,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
 pragma solidity ^0.5.16;
 
 
-interface LENDtLike {
+interface LENDLike {
   function delegate(address delegatee) external;
 }
 
@@ -2969,11 +2969,11 @@ contract TErc20 is TToken, TErc20Interface {
                 case 0 {                       // This is a non-standard ERC-20
                     success := not(0)          // set success to true
                 }
-                case 32 {                      // This is a lendtliant ERC-20
+                case 32 {                      // This is a compliant ERC-20
                     returndatacopy(0, 0, 32)
                     success := mload(0)        // Set `success = returndata` of external call
                 }
-                default {                      // This is an excessively non-lendtliant ERC-20, revert.
+                default {                      // This is an excessively non-compliant ERC-20, revert.
                     revert(0, 0)
                 }
         }
@@ -3004,11 +3004,11 @@ contract TErc20 is TToken, TErc20Interface {
                 case 0 {                      // This is a non-standard ERC-20
                     success := not(0)          // set success to true
                 }
-                case 32 {                     // This is a lendtliant ERC-20
+                case 32 {                     // This is a compliant ERC-20
                     returndatacopy(0, 0, 32)
                     success := mload(0)        // Set `success = returndata` of external call
                 }
-                default {                     // This is an excessively non-lendtliant ERC-20, revert.
+                default {                     // This is an excessively non-compliant ERC-20, revert.
                     revert(0, 0)
                 }
         }
@@ -3017,12 +3017,12 @@ contract TErc20 is TToken, TErc20Interface {
 
     /**
     * @notice Admin call to delegate the votes of the LENDT-like underlying
-    * @param lendtLikeDelegatee The address to delegate votes to
-    * @dev TTokens whose underlying are not LENDtLike should revert here
+    * @param lendLikeDelegatee The address to delegate votes to
+    * @dev TTokens whose underlying are not LENDLike should revert here
     */
-    function _delegateLENDtLikeTo(address lendtLikeDelegatee) external {
-        require(msg.sender == admin, "only the admin may set the lendt-like delegate");
-        LENDtLike(underlying).delegate(lendtLikeDelegatee);
+    function _delegateLENDLikeTo(address lendLikeDelegatee) external {
+        require(msg.sender == admin, "only the admin may set the lend-like delegate");
+        LENDLike(underlying).delegate(lendLikeDelegatee);
     }
 }
 
