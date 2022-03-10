@@ -1,7 +1,3 @@
-/**
- *Submitted for verification at BscScan.com on 2022-03-01
-*/
-
 // SPDX-License-Identifier: NONE
 
 pragma solidity >=0.8.0;
@@ -893,7 +889,7 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
     // Information on a user's locked balances
     function lockedBalances(
         address user
-    ) view external returns (
+    ) view public returns (
         uint256 total,
         uint256 unlockable,
         uint256 locked,
@@ -963,7 +959,7 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
         if (lock) {
             lockedSupply = lockedSupply.add(amount);
             bal.locked = bal.locked.add(amount);
-            uint256 unlockTime = block.timestamp.div(rewardsDuration).mul(rewardsDuration).add(lockDuration);
+            uint256 unlockTime = block.timestamp.add(lockDuration);
             uint256 idx = userLocks[msg.sender].length;
             if (idx == 0 || userLocks[msg.sender][idx-1].unlockTime < unlockTime) {
                 userLocks[msg.sender].push(LockedBalance({amount: amount, unlockTime: unlockTime}));
@@ -973,7 +969,7 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
         } else {
             stakedSupply = stakedSupply.add(amount);
             bal.staked = bal.staked.add(amount);
-            uint256 unlockTime = block.timestamp.div(rewardsDuration).mul(rewardsDuration).add(lockDuration);
+            uint256 unlockTime = block.timestamp.add(lockDuration);
             uint256 idx = userStakes[msg.sender].length;
             if (idx == 0 || userStakes[msg.sender][idx-1].unlockTime < unlockTime) {
                 userStakes[msg.sender].push(StakedBalance({amount: amount, unlockTime: unlockTime,reward:0,userRewardPerTokenPaid:rewardData[rewardToken].rewardPerTokenStored}));
@@ -1026,7 +1022,7 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
                     penaltyAmount +=calcPenalty;
                     totalRewards +=rewardAmount.sub(calcPenalty);
 
-                    if (stakedAmount>= remaining) {
+                    if (stakedAmount > remaining) {
                         userStakes[msg.sender][i].amount = stakedAmount.sub(remaining);
                         userStakes[msg.sender][i].reward=0;
                         break;
@@ -1035,7 +1031,7 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
                         remaining = remaining.sub(stakedAmount);
                     }
                 }else{
-                    if (remaining <= stakedAmount) {
+                    if (remaining < stakedAmount) {
                         totalRewards += rewardAmount;
                         userStakes[msg.sender][i].reward=0;
                         userStakes[msg.sender][i].amount = stakedAmount.sub(remaining);
@@ -1103,6 +1099,35 @@ contract MultiFeeDistribution is ReentrancyGuard, Ownable {
     }
 
     // Withdraw all currently locked tokens where the unlock time has passed
+    function withdrawExpiredLocksWithAmount(uint _unlockAmount) external nonReentrant updateReward(msg.sender){
+        LockedBalance[] storage locks = userLocks[msg.sender];
+        Balances storage bal = balances[msg.sender];
+        uint256 remaining=_unlockAmount;
+        uint256 length = locks.length;
+        (,uint unlockable,,)=lockedBalances(msg.sender);
+        require(unlockable>=_unlockAmount,"Can not withdraw before lock duration");
+        for (uint i = 0; i < length; i++) {
+                if (locks[i].unlockTime <= block.timestamp){
+                    uint lockedAmount=locks[i].amount;
+                    if(lockedAmount > remaining){
+                        locks[i].amount=lockedAmount.sub(remaining);
+                        remaining=0;
+                        break;
+                    }
+                    else{
+                        delete locks[i];
+                        remaining=remaining.sub(lockedAmount);
+                    }
+                }
+        }
+        bal.locked = bal.locked.sub(_unlockAmount);
+        bal.total = bal.total.sub(_unlockAmount);
+        totalSupply = totalSupply.sub(_unlockAmount);
+        lockedSupply = lockedSupply.sub(_unlockAmount);
+        stakingToken.safeTransfer(msg.sender, _unlockAmount);
+    }
+
+     // Withdraw all currently locked tokens where the unlock time has passed
     function withdrawExpiredLocks() external updateReward(msg.sender){
         LockedBalance[] storage locks = userLocks[msg.sender];
         Balances storage bal = balances[msg.sender];
