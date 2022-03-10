@@ -261,29 +261,29 @@ contract Reservoir is Ownable {
   
     /*
    * Distribution Logic:
-   * we set only lendtDrippedPerBlock value
+   * we set only lendDrippedPerBlock value
    *
-   * 1. TENTrollerDripRate% of 86.5% of this lendtDrippedPerBlock goes to lendttroller and
-   *    farmDripRate% of 86.5% of this lendtDrippedPerBlock goes to farm
-   * 2. foundationDripRate% of 86.5% of this lendtDrippedPerBlock goes to foundation
-   * 3. treasuryDripRate% of 86.5% of this lendtDrippedPerBlock goes to treasury
+   * 1. TENTrollerDripRate% of 86.5% of this lendDrippedPerBlock goes to tentroller and
+   *    farmDripRate% of 86.5% of this lendDrippedPerBlock goes to farm
+   * 2. foundationDripRate% of 86.5% of this lendDrippedPerBlock goes to foundation
+   * 3. treasuryDripRate% of 86.5% of this lendDrippedPerBlock goes to treasury
    */
 
   /// @notice The block number when the Reservoir started (immutable)
   uint public dripStart;
   
-  /// @notice number of LENDt tokens that will drip per block
-  uint public lendtDrippedPerBlock;
+  /// @notice number of LEND tokens that will drip per block
+  uint public lendDrippedPerBlock;
 
 
-  /// @notice Reference to token to drip (immutable) i.e LENDt
+  /// @notice Reference to token to drip (immutable) i.e LEND
   EIP20Interface public token;
 
-  /// @notice Target Addresses to drip LENDt
-  address public TENTroller = 0xF54f9e7070A1584532572A6F640F09c606bb9A83;     
-  address public foundation = 0xB47577d78c081cBb8F664ce7362034999d97e972;     
-  address public treasury = 0x464f751E2a86F686201D26B189B8109e6d910948;       
-  address public farmAddress = 0xB87F7016585510505478D1d160BDf76c1f41b53d; 
+  /// @notice Target Addresses to drip LEND
+  address public TENTroller = ;     
+  address public foundation = ;     
+  address public treasury = ;       
+  address public farmAddress = ; 
   
   
   /// @notice Percentage drip to targets
@@ -296,7 +296,7 @@ contract Reservoir is Ownable {
   uint public percentageWithoutTreasuryAndFoundation;
   uint public percentageWithoutTreasuryAndFoundationMax = 9000; //at one time we will change treasury distribution to 0% foundation percentage remains same
   
-  uint public constant maxLendtDrippedPerDay = 100000; // amount of lendt transferred from reservoir can never exceed 100,000 LENDt
+  uint public constant maxLendDrippedPerDay = 100000; // amount of lend transferred from reservoir can never exceed 100,000 LEND
   
   
   /// @notice Tokens per block that to drip to targets
@@ -313,7 +313,7 @@ contract Reservoir is Ownable {
   uint public farmDripped;
   
   
-  event LendtTrollerPercentageChange(uint oldPercentage,uint newPercentage);
+  event TENTrollerPercentageChange(uint oldPercentage,uint newPercentage);
   event FarmPercentageChange(uint oldPercentage,uint newPercentage);
   
   event NewFoundation(address oldFoundation,address newFoundation);
@@ -323,7 +323,7 @@ contract Reservoir is Ownable {
   event Dripped(uint totalAmount, uint timestamp);
   event FarmDripped(uint amount, uint timestamp);
   
-  event LendtTrollerDripRateChange(uint oldDripRate,uint newDripRate);
+  event TENTrollerDripRateChange(uint oldDripRate,uint newDripRate);
   event FarmDripRateChange(uint oldDripRate,uint newDripRate);
   event FoundationDripRateChange(uint oldDripRate,uint newDripRate);
   event TreasuryDripRateChange(uint oldDripRate,uint newDripRate);
@@ -352,9 +352,9 @@ contract Reservoir is Ownable {
     maxPercentage = 10000;
     percentageWithoutTreasuryAndFoundation = 8650;
     
-    lendtDrippedPerBlock = 3472222222222222000;
+    lendDrippedPerBlock = 3472222222222222000;
     
-    _updateLendtDrippedPerBlockInternal();
+    _updateLendDrippedPerBlockInternal();
   }
 
   /**
@@ -371,26 +371,26 @@ contract Reservoir is Ownable {
     // drip Calculations
     uint dripFoundation   = mul(foundationDripRate, blockNumber_ - dripStart, "foundation dripTotal overflow");
     uint dripTreasury     = mul(treasuryDripRate, blockNumber_ - dripStart, "treasury dripTotal overflow");
-    uint dripLendtTroller = mul(TENTrollerDripRate, blockNumber_ - dripStart, "lendttroller dripTotal overflow");
+    uint dripTENTroller = mul(TENTrollerDripRate, blockNumber_ - dripStart, "tentroller dripTotal overflow");
 
     uint deltaDripFoundation_   = sub(dripFoundation, foundationDripped, "foundation delta drip overflow");
     uint deltaDripTreasury_     = sub(dripTreasury, treasuryDripped, "treasury delta drip overflow");
-    uint deltaDripLendtTroller_ = sub(dripLendtTroller, TENTrollerDripped, "TENTroller delta drip overflow");
+    uint deltaDripTENTroller_ = sub(dripTENTroller, TENTrollerDripped, "TENTroller delta drip overflow");
 
 
-    uint totalDrip = deltaDripFoundation_+ deltaDripTreasury_ + deltaDripLendtTroller_;
+    uint totalDrip = deltaDripFoundation_+ deltaDripTreasury_ + deltaDripTENTroller_;
 
     require(token_.balanceOf(address(this)) > totalDrip, "Insufficient balance");
 
     uint drippedNextFoundation   = add(foundationDripped, deltaDripFoundation_, "");
     uint drippedNextTreasury     = add(treasuryDripped, deltaDripTreasury_, "");
-    uint drippedNextLendtTroller = add(TENTrollerDripped, deltaDripLendtTroller_, "");
+    uint drippedNextTENTroller = add(TENTrollerDripped, deltaDripTENTroller_, "");
 
     foundationDripped   = drippedNextFoundation;
     treasuryDripped     = drippedNextTreasury;
-    TENTrollerDripped = drippedNextLendtTroller;
+    TENTrollerDripped = drippedNextTENTroller;
 
-    token_.transfer(TENTroller, deltaDripLendtTroller_);
+    token_.transfer(TENTroller, deltaDripTENTroller_);
     token_.transfer(foundation, deltaDripFoundation_);
     token_.transfer(treasury, deltaDripTreasury_);
 
@@ -448,69 +448,69 @@ contract Reservoir is Ownable {
       
       require(_newFarmPercentage <= percentageWithoutTreasuryAndFoundation,"new percentage is above the max limit");
       
-      uint oldLendtTrollerPercentage = TENTrollerPercentage;
+      uint oldTENTrollerPercentage = TENTrollerPercentage;
       uint oldFarmPercentage = farmPercentage;
       
-      uint newLendtTrollerPercentage = percentageWithoutTreasuryAndFoundation.sub(_newFarmPercentage);
+      uint newTENTrollerPercentage = percentageWithoutTreasuryAndFoundation.sub(_newFarmPercentage);
       uint newFarmPercentage = _newFarmPercentage;
       
-      TENTrollerPercentage = newLendtTrollerPercentage;
+      TENTrollerPercentage = newTENTrollerPercentage;
       farmPercentage = newFarmPercentage;
       
-      emit LendtTrollerPercentageChange(oldLendtTrollerPercentage,newLendtTrollerPercentage);
+      emit TENTrollerPercentageChange(oldTENTrollerPercentage,newTENTrollerPercentage);
       emit FarmPercentageChange(oldFarmPercentage,_newFarmPercentage);
       
-      _updateLendtDrippedPerBlockInternal();
+      _updateLendDrippedPerBlockInternal();
   
   }
 
-  function setLendtDrippedPerDay(uint _tokensToDripPerDay) external onlyOwner {
+  function setLendDrippedPerDay(uint _tokensToDripPerDay) external onlyOwner {
       
-      require(_tokensToDripPerDay <= maxLendtDrippedPerDay,"tokens to drip per day cannot exceed the max limit");
+      require(_tokensToDripPerDay <= maxLendDrippedPerDay,"tokens to drip per day cannot exceed the max limit");
       
       uint _tokensToDripPerBlockInADay = _tokensToDripPerDay.mul(1e18).div(28800);
       
-      lendtDrippedPerBlock = _tokensToDripPerBlockInADay;
+      lendDrippedPerBlock = _tokensToDripPerBlockInADay;
       
-      _updateLendtDrippedPerBlockInternal();
+      _updateLendDrippedPerBlockInternal();
   
   }
   
-  function _updateLendtDrippedPerBlockInternal() internal {
+  function _updateLendDrippedPerBlockInternal() internal {
       
-      uint oldLendtTrollerDripRate = TENTrollerDripRate; 
+      uint oldTENTrollerDripRate = TENTrollerDripRate; 
       uint oldFoundationDripRate = foundationDripRate;   
       uint oldTreasuryDripRate = treasuryDripRate;     
       uint oldFarmDripRate = farmDripRate;
       
-      TENTrollerDripRate = TENTrollerPercentage.mul(lendtDrippedPerBlock).div(maxPercentage);
-      foundationDripRate   = foundationPercentage.mul(lendtDrippedPerBlock).div(maxPercentage);
-      treasuryDripRate     = treasuryPercentage.mul(lendtDrippedPerBlock).div(maxPercentage);
-      farmDripRate         = farmPercentage.mul(lendtDrippedPerBlock).div(maxPercentage); 
+      TENTrollerDripRate = TENTrollerPercentage.mul(lendDrippedPerBlock).div(maxPercentage);
+      foundationDripRate   = foundationPercentage.mul(lendDrippedPerBlock).div(maxPercentage);
+      treasuryDripRate     = treasuryPercentage.mul(lendDrippedPerBlock).div(maxPercentage);
+      farmDripRate         = farmPercentage.mul(lendDrippedPerBlock).div(maxPercentage); 
       
-      emit LendtTrollerDripRateChange(oldLendtTrollerDripRate,TENTrollerDripRate);
+      emit TENTrollerDripRateChange(oldTENTrollerDripRate,TENTrollerDripRate);
       emit FoundationDripRateChange(oldFoundationDripRate,foundationDripRate);
       emit TreasuryDripRateChange(oldTreasuryDripRate,treasuryDripRate);
       emit FarmDripRateChange(oldFarmDripRate,farmDripRate);
       
   }
   
-  function setLendtTrollerDripPercentage(uint _newLendtTrollerPercentage) external onlyOwner {
+  function setTENTrollerDripPercentage(uint _newTENTrollerPercentage) external onlyOwner {
       
-      require(_newLendtTrollerPercentage <= percentageWithoutTreasuryAndFoundation,"new percentage is above the max limit");
+      require(_newTENTrollerPercentage <= percentageWithoutTreasuryAndFoundation,"new percentage is above the max limit");
       
-      uint oldLendtTrollerPercentage = TENTrollerPercentage;
+      uint oldTENTrollerPercentage = TENTrollerPercentage;
       uint oldFarmPercentage = farmPercentage;
       
-      uint newLendtTrollerPercentage = _newLendtTrollerPercentage;
-      uint newFarmPercentage = percentageWithoutTreasuryAndFoundation.sub(_newLendtTrollerPercentage);
+      uint newTENTrollerPercentage = _newTENTrollerPercentage;
+      uint newFarmPercentage = percentageWithoutTreasuryAndFoundation.sub(_newTENTrollerPercentage);
       
-      TENTrollerPercentage = newLendtTrollerPercentage;
+      TENTrollerPercentage = newTENTrollerPercentage;
       farmPercentage = newFarmPercentage;
       
-      _updateLendtDrippedPerBlockInternal();
+      _updateLendDrippedPerBlockInternal();
       
-      emit LendtTrollerPercentageChange(oldLendtTrollerPercentage,_newLendtTrollerPercentage);
+      emit TENTrollerPercentageChange(oldTENTrollerPercentage,_newTENTrollerPercentage);
       emit FarmPercentageChange(oldFarmPercentage,newFarmPercentage);
   
   }
@@ -519,18 +519,18 @@ contract Reservoir is Ownable {
       
       require(_newFarmPercentage <= percentageWithoutTreasuryAndFoundation,"new percentage is above the max limit");
       
-      uint oldLendtTrollerPercentage = TENTrollerPercentage;
+      uint oldTENTrollerPercentage = TENTrollerPercentage;
       uint oldFarmPercentage = farmPercentage;
       
-      uint newLendtTrollerPercentage = percentageWithoutTreasuryAndFoundation.sub(_newFarmPercentage);
+      uint newTENTrollerPercentage = percentageWithoutTreasuryAndFoundation.sub(_newFarmPercentage);
       uint newFarmPercentage = _newFarmPercentage;
       
-      TENTrollerPercentage = newLendtTrollerPercentage;
+      TENTrollerPercentage = newTENTrollerPercentage;
       farmPercentage = newFarmPercentage;
       
-      _updateLendtDrippedPerBlockInternal();
+      _updateLendDrippedPerBlockInternal();
       
-      emit LendtTrollerPercentageChange(oldLendtTrollerPercentage,newLendtTrollerPercentage);
+      emit TENTrollerPercentageChange(oldTENTrollerPercentage,newTENTrollerPercentage);
       emit FarmPercentageChange(oldFarmPercentage,_newFarmPercentage);
   
   }
