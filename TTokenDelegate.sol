@@ -1340,7 +1340,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     }
 
     function changeReduceReserveCaller(address newCaller) external {
-        require(msg.sender != admin);
+        require(msg.sender == admin, "Unauthorised access");
         reduceReserveCaller = newCaller;
     }
 
@@ -1407,22 +1407,18 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         }
         //Updating the supplier list
         if(userSupplyRecord[dst].isPresent){
-            if(tokens == accountTokens[spender]){
-                uint256 idx = userSupplyRecord[spender].idx;
-                address temp = SupplyList[idx];
+            if(tokens == accountTokens[src]){
+                uint256 idx = userSupplyRecord[src].idx;
                 SupplyList[idx] = SupplyList[SupplyList.length - 1];
-                SupplyList[SupplyList.length - 1] = temp;
                 SupplyList.pop();
-                delete userSupplyRecord[spender];
+                delete userSupplyRecord[src];
             }
         } else {
-            if(tokens == accountTokens[spender]){
-                uint256 idx = userSupplyRecord[spender].idx;
-                address temp = SupplyList[idx];
+            if(tokens == accountTokens[src]){
+                uint256 idx = userSupplyRecord[src].idx;
                 SupplyList[idx] = SupplyList[SupplyList.length - 1];
-                SupplyList[SupplyList.length - 1] = temp;
                 SupplyList.pop();
-                delete userSupplyRecord[spender];
+                delete userSupplyRecord[src];
             }
                 SupplyList.push(dst);
                 userSupplyRecord[dst].idx = SupplyList.length - 1;
@@ -1864,9 +1860,11 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         /* We write previously calculated values into storage */
         totalSupply = vars.totalSupplyNew;
         accountTokens[minter] = vars.accountTokensNew;
-        SupplyList.push(minter);
-        userSupplyRecord[minter].idx = SupplyList.length - 1;
-        userSupplyRecord[minter].isPresent = true;
+        if(!userSupplyRecord[minter].isPresent){
+            SupplyList.push(minter);
+            userSupplyRecord[minter].idx = SupplyList.length - 1;
+            userSupplyRecord[minter].isPresent = true;
+        }
 
         /* We emit a Mint event, and a Transfer event */
         emit Mint(minter, vars.actualMintAmount, vars.mintTokens);
@@ -2016,9 +2014,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountTokens[redeemer] = vars.accountTokensNew;
         if(vars.redeemAmount == accountTokens[redeemer]){
             uint256 idx = userSupplyRecord[redeemer].idx;
-            address temp = SupplyList[idx];
             SupplyList[idx] = SupplyList[SupplyList.length - 1];
-            SupplyList[SupplyList.length - 1] = temp;
             SupplyList.pop();
             delete userSupplyRecord[redeemer];
         }
@@ -2109,9 +2105,11 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
          *  On success, the tToken borrowAmount less of cash.
          *  doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
          */
-        BorrowList.push(borrower);
-        userBorrowRecord[borrower].idx = BorrowList.length - 1;
-        userBorrowRecord[borrower].isPresent = true;
+        if(!userBorrowRecord[borrower].isPresent){
+            BorrowList.push(borrower);
+            userBorrowRecord[borrower].idx = BorrowList.length - 1;
+            userBorrowRecord[borrower].isPresent = true;
+        }
         doTransferOut(borrower, borrowAmount);
 
         /* We write the previously calculated values into storage */
@@ -2238,9 +2236,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalBorrows = vars.totalBorrowsNew;
         if(borrowBalanceStored(borrower) == 0){
             uint256 idx = userBorrowRecord[borrower].idx;
-            address temp = BorrowList[idx];
             BorrowList[idx] = BorrowList[BorrowList.length - 1];
-            BorrowList[BorrowList.length - 1] = temp;
             BorrowList.pop();
             delete userBorrowRecord[borrower];
         }
