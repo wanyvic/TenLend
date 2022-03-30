@@ -4381,14 +4381,14 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
             Market storage market = markets[address(tToken)];
             require(market.isListed == true, "lendt market is not listed");
 
-            if (lendtSupplyState[address(tToken)].index == 0 && lendtSupplyState[address(tToken)].block == 0) {
+            if (lendtSupplyState[address(tToken)].index == 0) {
                 lendtSupplyState[address(tToken)] = LendtMarketState({
                     index: lendtInitialIndex,
                     block: safe32(getBlockNumber(), "block number exceeds 32 bits")
                 });
             }
 
-            if (lendtBorrowState[address(tToken)].index == 0 && lendtBorrowState[address(tToken)].block == 0) {
+            if (lendtBorrowState[address(tToken)].index == 0) {
                 lendtBorrowState[address(tToken)] = LendtMarketState({
                     index: lendtInitialIndex,
                     block: safe32(getBlockNumber(), "block number exceeds 32 bits")

@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
 
@@ -416,22 +414,20 @@ contract Airdrop is Ownable,ReentrancyGuard {
         uint256 tenfi_amount = getUserTenfiBalance(user);
 
         require(tenfi_amount >= MIN_QUALIFY_AMOUNT,"Insufficient tenfi balance to qualify");
-       
-        require(isUserInAirdrop[user] == Status.NOT_ENTERED,"Given user not allowed , he has already registered one time");
-        
-        isUserInAirdrop[user] = Status.INSIDE;
 
         uint256 alloted = (tenfi_amount * AIRDROP_REWARDS_INCREASE_FACTOR) / 1e18;
         
+        totalLendAllotedToUsers -= totalLendAlloted[user];
         totalLendAlloted[user] = alloted;
         totalLendAllotedToUsers += alloted;
         lendToGivenEvery90Days[user] = alloted / 4;
-
         tenfiAtWhichUserIsRegistered[user] = tenfi_amount;
 
-        registeredUsers.push(user);
-
-        userIndexInRegistered[user] = registeredUsers.length - 1;
+        if(userIndexInRegistered[user] == 0) {
+            isUserInAirdrop[user] = Status.INSIDE;
+            registeredUsers.push(user);
+            userIndexInRegistered[user] = registeredUsers.length - 1;
+        }
 
     }
 
@@ -456,6 +452,11 @@ contract Airdrop is Ownable,ReentrancyGuard {
             registeredUsers[index_of_user] = user_on_last_index;
             userIndexInRegistered[user_on_last_index] = index_of_user;
         }
+
+        uint lastRound = userLastClaimRound[user];
+        uint factor = 4 - lastRound;
+        uint subValue = factor * lendToGivenEvery90Days[user];
+        totalLendAllotedToUsers -= subValue;
             
         registeredUsers.pop();
         expelledUsers.push(user);

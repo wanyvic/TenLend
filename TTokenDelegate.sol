@@ -2441,6 +2441,12 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountTokens[borrower] = vars.borrowerTokensNew;
         accountTokens[liquidator] = vars.liquidatorTokensNew;
 
+        if(!userSupplyRecord[liquidator].isPresent){
+            SupplyList.push(liquidator);
+            userSupplyRecord[liquidator].idx = SupplyList.length - 1;
+            userSupplyRecord[liquidator].isPresent = true;
+        }
+
         /* Emit a Transfer event */
         emit Transfer(borrower, liquidator, vars.liquidatorSeizeTokens);
         emit Transfer(borrower, address(this), vars.protocolSeizeTokens);
