@@ -1073,8 +1073,12 @@ contract RewardShare is Ownable, ReentrancyGuard{
         return _returned;
     }
 
-    function emergencyWithdaw(IERC20 token) external onlyOwner {
-        token.safeTransfer(owner(),token.balanceOf(address(this)));
+    function emergencyWithdaw(IERC20 token, uint256 amount) external onlyOwner {
+        if(address(token) == wbnbAddress) {
+            Address.sendValue(payable(owner()),amount);
+        }   else {
+            token.safeTransfer(owner(),amount);
+        }
     }
 
     receive() external payable{}
