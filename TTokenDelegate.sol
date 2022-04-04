@@ -1406,23 +1406,25 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
             transferAllowances[src][spender] = allowanceNew;
         }
         //Updating the supplier list
-        if(userSupplyRecord[dst].isPresent){
-            if(tokens == accountTokens[src]){
-                uint256 idx = userSupplyRecord[src].idx;
-                SupplyList[idx] = SupplyList[SupplyList.length - 1];
-                SupplyList.pop();
-                delete userSupplyRecord[src];
+        if(tokens > 0) {
+            if(userSupplyRecord[dst].isPresent){
+                if(tokens == accountTokens[src]){
+                    uint256 idx = userSupplyRecord[src].idx;
+                    SupplyList[idx] = SupplyList[SupplyList.length - 1];
+                    SupplyList.pop();
+                    delete userSupplyRecord[src];
+                }
+            } else {
+                if(tokens == accountTokens[src]){
+                    uint256 idx = userSupplyRecord[src].idx;
+                    SupplyList[idx] = SupplyList[SupplyList.length - 1];
+                    SupplyList.pop();
+                    delete userSupplyRecord[src];
+                }
+                    SupplyList.push(dst);
+                    userSupplyRecord[dst].idx = SupplyList.length - 1;
+                    userSupplyRecord[dst].isPresent = true;
             }
-        } else {
-            if(tokens == accountTokens[src]){
-                uint256 idx = userSupplyRecord[src].idx;
-                SupplyList[idx] = SupplyList[SupplyList.length - 1];
-                SupplyList.pop();
-                delete userSupplyRecord[src];
-            }
-                SupplyList.push(dst);
-                userSupplyRecord[dst].idx = SupplyList.length - 1;
-                userSupplyRecord[dst].isPresent = true;
         }
         
 
@@ -2101,6 +2103,14 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = vars.totalBorrowsNew;
 
+        /* Updating Borrow List */
+        if(borrowAmount > 0) {
+            if(!userBorrowRecord[borrower].isPresent){
+                BorrowList.push(borrower);
+                userBorrowRecord[borrower].idx = BorrowList.length - 1;
+                userBorrowRecord[borrower].isPresent = true;
+            }
+        }
         /////////////////////////
         // EFFECTS & INTERACTIONS
         // (No safe failures beyond this point)
@@ -2111,11 +2121,6 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
          *  On success, the tToken borrowAmount less of cash.
          *  doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
          */
-        if(!userBorrowRecord[borrower].isPresent){
-            BorrowList.push(borrower);
-            userBorrowRecord[borrower].idx = BorrowList.length - 1;
-            userBorrowRecord[borrower].isPresent = true;
-        }
         doTransferOut(borrower, borrowAmount);
 
         /* We emit a Borrow event */
@@ -2446,6 +2451,12 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
             SupplyList.push(liquidator);
             userSupplyRecord[liquidator].idx = SupplyList.length - 1;
             userSupplyRecord[liquidator].isPresent = true;
+        }
+        if(accountTokens[borrower] == 0) {
+            uint256 idx = userBorrowRecord[borrower].idx;
+            BorrowList[idx] = BorrowList[BorrowList.length - 1];
+            BorrowList.pop();
+            delete userBorrowRecord[borrower]; 
         }
 
         /* Emit a Transfer event */
