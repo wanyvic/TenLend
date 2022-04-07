@@ -1,21 +1,21 @@
 
-// File: tenlendContracts/Lendt.sol
+// File: tenlendContracts/Lend.sol
 
 pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 
-contract Lendt {
+contract Lend {
     /// @notice EIP-20 token name for this token
     string public constant name = "TENLend";
 
     /// @notice EIP-20 token symbol for this token
-    string public constant symbol = "LENDt";
+    string public constant symbol = "LEND";
 
     /// @notice EIP-20 token decimals for this token
     uint8 public constant decimals = 18;
 
     /// @notice Total number of tokens in circulation
-    uint public constant totalSupply = 10000000e18; // 10 million Lendt
+    uint public constant totalSupply = 1000000000e18; // 1 billion Lend
 
     /// @notice Allowance amounts on behalf of others
     mapping (address => mapping (address => uint96)) internal allowances;
@@ -60,7 +60,7 @@ contract Lendt {
     event Approval(address indexed owner, address indexed spender, uint256 amount);
 
     /**
-     * @notice Construct a new Lendt token
+     * @notice Construct a new Lend token
      * @param account The initial account to grant all the tokens
      */
     constructor(address account) public {
@@ -91,7 +91,7 @@ contract Lendt {
         if (rawAmount == uint(-1)) {
             amount = uint96(-1);
         } else {
-            amount = safe96(rawAmount, "Lendt::approve: amount exceeds 96 bits");
+            amount = safe96(rawAmount, "Lend::approve: amount exceeds 96 bits");
         }
 
         allowances[msg.sender][spender] = amount;
@@ -116,7 +116,7 @@ contract Lendt {
      * @return Whether or not the transfer succeeded
      */
     function transfer(address dst, uint rawAmount) external returns (bool) {
-        uint96 amount = safe96(rawAmount, "Lendt::transfer: amount exceeds 96 bits");
+        uint96 amount = safe96(rawAmount, "Lend::transfer: amount exceeds 96 bits");
         _transferTokens(msg.sender, dst, amount);
         return true;
     }
@@ -131,10 +131,10 @@ contract Lendt {
     function transferFrom(address src, address dst, uint rawAmount) external returns (bool) {
         address spender = msg.sender;
         uint96 spenderAllowance = allowances[src][spender];
-        uint96 amount = safe96(rawAmount, "Lendt::approve: amount exceeds 96 bits");
+        uint96 amount = safe96(rawAmount, "Lend::approve: amount exceeds 96 bits");
 
         if (spender != src && spenderAllowance != uint96(-1)) {
-            uint96 newAllowance = sub96(spenderAllowance, amount, "Lendt::transferFrom: transfer amount exceeds spender allowance");
+            uint96 newAllowance = sub96(spenderAllowance, amount, "Lend::transferFrom: transfer amount exceeds spender allowance");
             allowances[src][spender] = newAllowance;
 
             emit Approval(src, spender, newAllowance);
@@ -166,9 +166,9 @@ contract Lendt {
         bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "Lendt::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "Lendt::delegateBySig: invalid nonce");
-        require(now <= expiry, "Lendt::delegateBySig: signature expired");
+        require(signatory != address(0), "Lend::delegateBySig: invalid signature");
+        require(nonce == nonces[signatory]++, "Lend::delegateBySig: invalid nonce");
+        require(now <= expiry, "Lend::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
     }
 
@@ -190,7 +190,7 @@ contract Lendt {
      * @return The number of votes the account had as of the given block
      */
     function getPriorVotes(address account, uint blockNumber) public view returns (uint96) {
-        require(blockNumber < block.number, "Lendt::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "Lend::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -234,11 +234,11 @@ contract Lendt {
     }
 
     function _transferTokens(address src, address dst, uint96 amount) internal {
-        require(src != address(0), "Lendt::_transferTokens: cannot transfer from the zero address");
-        require(dst != address(0), "Lendt::_transferTokens: cannot transfer to the zero address");
+        require(src != address(0), "Lend::_transferTokens: cannot transfer from the zero address");
+        require(dst != address(0), "Lend::_transferTokens: cannot transfer to the zero address");
 
-        balances[src] = sub96(balances[src], amount, "Lendt::_transferTokens: transfer amount exceeds balance");
-        balances[dst] = add96(balances[dst], amount, "Lendt::_transferTokens: transfer amount overflows");
+        balances[src] = sub96(balances[src], amount, "Lend::_transferTokens: transfer amount exceeds balance");
+        balances[dst] = add96(balances[dst], amount, "Lend::_transferTokens: transfer amount overflows");
         emit Transfer(src, dst, amount);
 
         _moveDelegates(delegates[src], delegates[dst], amount);
@@ -249,21 +249,21 @@ contract Lendt {
             if (srcRep != address(0)) {
                 uint32 srcRepNum = numCheckpoints[srcRep];
                 uint96 srcRepOld = srcRepNum > 0 ? checkpoints[srcRep][srcRepNum - 1].votes : 0;
-                uint96 srcRepNew = sub96(srcRepOld, amount, "Lendt::_moveVotes: vote amount underflows");
+                uint96 srcRepNew = sub96(srcRepOld, amount, "Lend::_moveVotes: vote amount underflows");
                 _writeCheckpoint(srcRep, srcRepNum, srcRepOld, srcRepNew);
             }
 
             if (dstRep != address(0)) {
                 uint32 dstRepNum = numCheckpoints[dstRep];
                 uint96 dstRepOld = dstRepNum > 0 ? checkpoints[dstRep][dstRepNum - 1].votes : 0;
-                uint96 dstRepNew = add96(dstRepOld, amount, "Lendt::_moveVotes: vote amount overflows");
+                uint96 dstRepNew = add96(dstRepOld, amount, "Lend::_moveVotes: vote amount overflows");
                 _writeCheckpoint(dstRep, dstRepNum, dstRepOld, dstRepNew);
             }
         }
     }
 
     function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint96 oldVotes, uint96 newVotes) internal {
-      uint32 blockNumber = safe32(block.number, "Lendt::_writeCheckpoint: block number exceeds 32 bits");
+      uint32 blockNumber = safe32(block.number, "Lend::_writeCheckpoint: block number exceeds 32 bits");
 
       if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
           checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
@@ -659,7 +659,7 @@ pragma solidity ^0.5.16;
 /**
  * @title Exponential module for storing fixed-precision decimals
  * @author TENLend
- * @dev Legacy contract for lendtatibility reasons with existing contracts that still use MathError
+ * @dev Legacy contract for compatibility reasons with existing contracts that still use MathError
  * @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
  *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
  *         `Exp({mantissa: 5100000000000000000})`.
@@ -3180,8 +3180,8 @@ contract TENTrollerV2Storage is TENTrollerV1Storage {
         /// @notice Per-market mapping of "accounts in this asset"
         mapping(address => bool) accountMembership;
 
-        /// @notice Whether or not this market receives LENDt
-        bool isLendted;
+        /// @notice Whether or not this market receives LEND
+        bool isLended;
     }
 
     /**
@@ -3206,8 +3206,8 @@ contract TENTrollerV2Storage is TENTrollerV1Storage {
 }
 
 contract TENTrollerV3Storage is TENTrollerV2Storage {
-    struct LendtMarketState {
-        /// @notice The market's last updated lendtBorrowIndex or lendtSupplyIndex
+    struct LendMarketState {
+        /// @notice The market's last updated lendBorrowIndex or lendSupplyIndex
         uint224 index;
 
         /// @notice The block number the index was last updated at
@@ -3217,26 +3217,26 @@ contract TENTrollerV3Storage is TENTrollerV2Storage {
     /// @notice A list of all markets
     TToken[] public allMarkets;
 
-    /// @notice The rate at which the flywheel distributes LENDt, per block
-    uint public lendtRate;
+    /// @notice The rate at which the flywheel distributes LEND, per block
+    uint public lendRate;
 
-    /// @notice The portion of lendtRate that each market currently receives
-    mapping(address => uint) public lendtSpeeds;
+    /// @notice The portion of lendRate that each market currently receives
+    mapping(address => uint) public lendSpeeds;
 
-    /// @notice The LENDt market supply state for each market
-    mapping(address => LendtMarketState) public lendtSupplyState;
+    /// @notice The LEND market supply state for each market
+    mapping(address => LendMarketState) public lendSupplyState;
 
-    /// @notice The LENDt market borrow state for each market
-    mapping(address => LendtMarketState) public lendtBorrowState;
+    /// @notice The LEND market borrow state for each market
+    mapping(address => LendMarketState) public lendBorrowState;
 
-    /// @notice The LENDt borrow index for each market for each supplier as of the last time they accrued LENDt
-    mapping(address => mapping(address => uint)) public lendtSupplierIndex;
+    /// @notice The LEND borrow index for each market for each supplier as of the last time they accrued LEND
+    mapping(address => mapping(address => uint)) public lendSupplierIndex;
 
-    /// @notice The LENDt borrow index for each market for each borrower as of the last time they accrued LENDt
-    mapping(address => mapping(address => uint)) public lendtBorrowerIndex;
+    /// @notice The LEND borrow index for each market for each borrower as of the last time they accrued LEND
+    mapping(address => mapping(address => uint)) public lendBorrowerIndex;
 
-    /// @notice The LENDt accrued but not yet transferred to each user
-    mapping(address => uint) public lendtAccrued;
+    /// @notice The LEND accrued but not yet transferred to each user
+    mapping(address => uint) public lendAccrued;
 }
 
 contract TENTrollerV4Storage is TENTrollerV3Storage {
@@ -3248,10 +3248,10 @@ contract TENTrollerV4Storage is TENTrollerV3Storage {
 }
 
 contract TENTrollerV5Storage is TENTrollerV4Storage {
-    /// @notice The portion of LENDt that each contributor receives per block
-    mapping(address => uint) public lendtContributorSpeeds;
+    /// @notice The portion of LEND that each contributor receives per block
+    mapping(address => uint) public lendContributorSpeeds;
 
-    /// @notice Last block at which a contributor's LENDt rewards have been allocated
+    /// @notice Last block at which a contributor's LEND rewards have been allocated
     mapping(address => uint) public lastContributorBlock;
 }
 // File: tenlendContracts/Unitroller.sol
@@ -3449,17 +3449,17 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
     /// @notice Emitted when an action is paused on a market
     event ActionPaused(TToken tToken, string action, bool pauseState);
 
-    /// @notice Emitted when a new LENDt speed is calculated for a market
-    event LendtSpeedUpdated(TToken indexed tToken, uint newSpeed);
+    /// @notice Emitted when a new LEND speed is calculated for a market
+    event LendSpeedUpdated(TToken indexed tToken, uint newSpeed);
 
-    /// @notice Emitted when a new LENDt speed is set for a contributor
-    event ContributorLendtSpeedUpdated(address indexed contributor, uint newSpeed);
+    /// @notice Emitted when a new LEND speed is set for a contributor
+    event ContributorLendSpeedUpdated(address indexed contributor, uint newSpeed);
 
-    /// @notice Emitted when LENDt is distributed to a supplier
-    event DistributedSupplierLendt(TToken indexed tToken, address indexed supplier, uint lendtDelta, uint lendtSupplyIndex);
+    /// @notice Emitted when LEND is distributed to a supplier
+    event DistributedSupplierLend(TToken indexed tToken, address indexed supplier, uint lendDelta, uint lendSupplyIndex);
 
-    /// @notice Emitted when LENDt is distributed to a borrower
-    event DistributedBorrowerLendt(TToken indexed tToken, address indexed borrower, uint lendtDelta, uint lendtBorrowIndex);
+    /// @notice Emitted when LEND is distributed to a borrower
+    event DistributedBorrowerLend(TToken indexed tToken, address indexed borrower, uint lendDelta, uint lendBorrowIndex);
 
     /// @notice Emitted when borrow cap for a tToken is changed
     event NewBorrowCap(TToken indexed tToken, uint newBorrowCap);
@@ -3467,11 +3467,11 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
     /// @notice Emitted when borrow cap guardian is changed
     event NewBorrowCapGuardian(address oldBorrowCapGuardian, address newBorrowCapGuardian);
 
-    /// @notice Emitted when LENDt is granted by admin
-    event LendtGranted(address recipient, uint amount);
+    /// @notice Emitted when LEND is granted by admin
+    event LendGranted(address recipient, uint amount);
 
-    /// @notice The initial LENDt index for a market
-    uint224 public constant lendtInitialIndex = 1e36;
+    /// @notice The initial LEND index for a market
+    uint224 public constant lendInitialIndex = 1e36;
 
     // closeFactorMantissa must be strictly greater than this value
     uint internal constant closeFactorMinMantissa = 0.05e18; // 0.05
@@ -3640,8 +3640,8 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
         }
 
         // Keep the flywheel moving
-        updateLendtSupplyIndex(tToken);
-        distributeSupplierLendt(tToken, minter);
+        updateLendSupplyIndex(tToken);
+        distributeSupplierLend(tToken, minter);
 
         return uint(Error.NO_ERROR);
     }
@@ -3680,8 +3680,8 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
         }
 
         // Keep the flywheel moving
-        updateLendtSupplyIndex(tToken);
-        distributeSupplierLendt(tToken, redeemer);
+        updateLendSupplyIndex(tToken);
+        distributeSupplierLend(tToken, redeemer);
 
         return uint(Error.NO_ERROR);
     }
@@ -3778,8 +3778,8 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
 
         // Keep the flywheel moving
         Exp memory borrowIndex = Exp({mantissa: TToken(tToken).borrowIndex()});
-        updateLendtBorrowIndex(tToken, borrowIndex);
-        distributeBorrowerLendt(tToken, borrower, borrowIndex);
+        updateLendBorrowIndex(tToken, borrowIndex);
+        distributeBorrowerLend(tToken, borrower, borrowIndex);
 
         return uint(Error.NO_ERROR);
     }
@@ -3826,8 +3826,8 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
 
         // Keep the flywheel moving
         Exp memory borrowIndex = Exp({mantissa: TToken(tToken).borrowIndex()});
-        updateLendtBorrowIndex(tToken, borrowIndex);
-        distributeBorrowerLendt(tToken, borrower, borrowIndex);
+        updateLendBorrowIndex(tToken, borrowIndex);
+        distributeBorrowerLend(tToken, borrower, borrowIndex);
 
         return uint(Error.NO_ERROR);
     }
@@ -3962,9 +3962,9 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
         }
 
         // Keep the flywheel moving
-        updateLendtSupplyIndex(tTokenCollateral);
-        distributeSupplierLendt(tTokenCollateral, borrower);
-        distributeSupplierLendt(tTokenCollateral, liquidator);
+        updateLendSupplyIndex(tTokenCollateral);
+        distributeSupplierLend(tTokenCollateral, borrower);
+        distributeSupplierLend(tTokenCollateral, liquidator);
 
         return uint(Error.NO_ERROR);
     }
@@ -4016,9 +4016,9 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
         }
 
         // Keep the flywheel moving
-        updateLendtSupplyIndex(tToken);
-        distributeSupplierLendt(tToken, src);
-        distributeSupplierLendt(tToken, dst);
+        updateLendSupplyIndex(tToken);
+        distributeSupplierLend(tToken, src);
+        distributeSupplierLend(tToken, dst);
 
         return uint(Error.NO_ERROR);
     }
@@ -4145,7 +4145,7 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
             }
             vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
 
-            // Pre-lendtute a conversion factor from tokens -> ether (normalized price value)
+            // Pre-lendute a conversion factor from tokens -> ether (normalized price value)
             vars.tokensToDenom = mul_(mul_(vars.collateralFactor, vars.exchangeRate), vars.oraclePrice);
 
             // sumCollateral += tokensToDenom * tTokenBalance
@@ -4336,8 +4336,8 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
 
         tToken.isTToken(); // Sanity check to make sure its really a TToken
 
-        // Note that isLendted is not in active use anymore
-        markets[address(tToken)] = Market({isListed: true, isLendted: false, collateralFactorMantissa: 0});
+        // Note that isLended is not in active use anymore
+        markets[address(tToken)] = Market({isListed: true, isLended: false, collateralFactorMantissa: 0});
 
         _addMarketInternal(address(tToken));
 
@@ -4463,61 +4463,61 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
         return msg.sender == admin || msg.sender == implementation;
     }
 
-    /*** Lendt Distribution ***/
+    /*** Lend Distribution ***/
 
     /**
-     * @notice Set LENDt speed for a single market
-     * @param tToken The market whose LENDt speed to update
-     * @param lendtSpeed New LENDt speed for market
+     * @notice Set LEND speed for a single market
+     * @param tToken The market whose LEND speed to update
+     * @param lendSpeed New LEND speed for market
      */
-    function setLendtSpeedInternal(TToken tToken, uint lendtSpeed) internal {
-        uint currentLendtSpeed = lendtSpeeds[address(tToken)];
-        if (currentLendtSpeed != 0) {
-            // note that LENDt speed could be set to 0 to halt liquidity rewards for a market
+    function setLendSpeedInternal(TToken tToken, uint lendSpeed) internal {
+        uint currentLendSpeed = lendSpeeds[address(tToken)];
+        if (currentLendSpeed != 0) {
+            // note that LEND speed could be set to 0 to halt liquidity rewards for a market
             Exp memory borrowIndex = Exp({mantissa: tToken.borrowIndex()});
-            updateLendtSupplyIndex(address(tToken));
-            updateLendtBorrowIndex(address(tToken), borrowIndex);
-        } else if (lendtSpeed != 0) {
-            // Add the LENDt market
+            updateLendSupplyIndex(address(tToken));
+            updateLendBorrowIndex(address(tToken), borrowIndex);
+        } else if (lendSpeed != 0) {
+            // Add the LEND market
             Market storage market = markets[address(tToken)];
-            require(market.isListed == true, "lendt market is not listed");
+            require(market.isListed == true, "lend market is not listed");
 
-            if (lendtSupplyState[address(tToken)].index == 0) {
-                lendtSupplyState[address(tToken)] = LendtMarketState({
-                    index: lendtInitialIndex,
+            if (lendSupplyState[address(tToken)].index == 0) {
+                lendSupplyState[address(tToken)] = LendMarketState({
+                    index: lendInitialIndex,
                     block: safe32(getBlockNumber(), "block number exceeds 32 bits")
                 });
             }
 
-            if (lendtBorrowState[address(tToken)].index == 0) {
-                lendtBorrowState[address(tToken)] = LendtMarketState({
-                    index: lendtInitialIndex,
+            if (lendBorrowState[address(tToken)].index == 0) {
+                lendBorrowState[address(tToken)] = LendMarketState({
+                    index: lendInitialIndex,
                     block: safe32(getBlockNumber(), "block number exceeds 32 bits")
                 });
             }
         }
 
-        if (currentLendtSpeed != lendtSpeed) {
-            lendtSpeeds[address(tToken)] = lendtSpeed;
-            emit LendtSpeedUpdated(tToken, lendtSpeed);
+        if (currentLendSpeed != lendSpeed) {
+            lendSpeeds[address(tToken)] = lendSpeed;
+            emit LendSpeedUpdated(tToken, lendSpeed);
         }
     }
 
     /**
-     * @notice Accrue LENDt to the market by updating the supply index
+     * @notice Accrue LEND to the market by updating the supply index
      * @param tToken The market whose supply index to update
      */
-    function updateLendtSupplyIndex(address tToken) internal {
-        LendtMarketState storage supplyState = lendtSupplyState[tToken];
-        uint supplySpeed = lendtSpeeds[tToken];
+    function updateLendSupplyIndex(address tToken) internal {
+        LendMarketState storage supplyState = lendSupplyState[tToken];
+        uint supplySpeed = lendSpeeds[tToken];
         uint blockNumber = getBlockNumber();
         uint deltaBlocks = sub_(blockNumber, uint(supplyState.block));
         if (deltaBlocks > 0 && supplySpeed > 0) {
             uint supplyTokens = TToken(tToken).totalSupply();
-            uint lendtAccrued = mul_(deltaBlocks, supplySpeed);
-            Double memory ratio = supplyTokens > 0 ? fraction(lendtAccrued, supplyTokens) : Double({mantissa: 0});
+            uint lendAccrued = mul_(deltaBlocks, supplySpeed);
+            Double memory ratio = supplyTokens > 0 ? fraction(lendAccrued, supplyTokens) : Double({mantissa: 0});
             Double memory index = add_(Double({mantissa: supplyState.index}), ratio);
-            lendtSupplyState[tToken] = LendtMarketState({
+            lendSupplyState[tToken] = LendMarketState({
                 index: safe224(index.mantissa, "new index exceeds 224 bits"),
                 block: safe32(blockNumber, "block number exceeds 32 bits")
             });
@@ -4527,20 +4527,20 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
     }
 
     /**
-     * @notice Accrue LENDt to the market by updating the borrow index
+     * @notice Accrue LEND to the market by updating the borrow index
      * @param tToken The market whose borrow index to update
      */
-    function updateLendtBorrowIndex(address tToken, Exp memory marketBorrowIndex) internal {
-        LendtMarketState storage borrowState = lendtBorrowState[tToken];
-        uint borrowSpeed = lendtSpeeds[tToken];
+    function updateLendBorrowIndex(address tToken, Exp memory marketBorrowIndex) internal {
+        LendMarketState storage borrowState = lendBorrowState[tToken];
+        uint borrowSpeed = lendSpeeds[tToken];
         uint blockNumber = getBlockNumber();
         uint deltaBlocks = sub_(blockNumber, uint(borrowState.block));
         if (deltaBlocks > 0 && borrowSpeed > 0) {
             uint borrowAmount = div_(TToken(tToken).totalBorrows(), marketBorrowIndex);
-            uint lendtAccrued = mul_(deltaBlocks, borrowSpeed);
-            Double memory ratio = borrowAmount > 0 ? fraction(lendtAccrued, borrowAmount) : Double({mantissa: 0});
+            uint lendAccrued = mul_(deltaBlocks, borrowSpeed);
+            Double memory ratio = borrowAmount > 0 ? fraction(lendAccrued, borrowAmount) : Double({mantissa: 0});
             Double memory index = add_(Double({mantissa: borrowState.index}), ratio);
-            lendtBorrowState[tToken] = LendtMarketState({
+            lendBorrowState[tToken] = LendMarketState({
                 index: safe224(index.mantissa, "new index exceeds 224 bits"),
                 block: safe32(blockNumber, "block number exceeds 32 bits")
             });
@@ -4550,177 +4550,177 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
     }
 
     /**
-     * @notice Calculate LENDt accrued by a supplier and possibly transfer it to them
+     * @notice Calculate LEND accrued by a supplier and possibly transfer it to them
      * @param tToken The market in which the supplier is interacting
-     * @param supplier The address of the supplier to distribute LENDt to
+     * @param supplier The address of the supplier to distribute LEND to
      */
-    function distributeSupplierLendt(address tToken, address supplier) internal {
-        LendtMarketState storage supplyState = lendtSupplyState[tToken];
+    function distributeSupplierLend(address tToken, address supplier) internal {
+        LendMarketState storage supplyState = lendSupplyState[tToken];
         Double memory supplyIndex = Double({mantissa: supplyState.index});
-        Double memory supplierIndex = Double({mantissa: lendtSupplierIndex[tToken][supplier]});
-        lendtSupplierIndex[tToken][supplier] = supplyIndex.mantissa;
+        Double memory supplierIndex = Double({mantissa: lendSupplierIndex[tToken][supplier]});
+        lendSupplierIndex[tToken][supplier] = supplyIndex.mantissa;
 
         if (supplierIndex.mantissa == 0 && supplyIndex.mantissa > 0) {
-            supplierIndex.mantissa = lendtInitialIndex;
+            supplierIndex.mantissa = lendInitialIndex;
         }
 
         Double memory deltaIndex = sub_(supplyIndex, supplierIndex);
         uint supplierTokens = TToken(tToken).balanceOf(supplier);
         uint supplierDelta = mul_(supplierTokens, deltaIndex);
-        uint supplierAccrued = add_(lendtAccrued[supplier], supplierDelta);
-        lendtAccrued[supplier] = supplierAccrued;
-        emit DistributedSupplierLendt(TToken(tToken), supplier, supplierDelta, supplyIndex.mantissa);
+        uint supplierAccrued = add_(lendAccrued[supplier], supplierDelta);
+        lendAccrued[supplier] = supplierAccrued;
+        emit DistributedSupplierLend(TToken(tToken), supplier, supplierDelta, supplyIndex.mantissa);
     }
 
     /**
-     * @notice Calculate LENDt accrued by a borrower and possibly transfer it to them
+     * @notice Calculate LEND accrued by a borrower and possibly transfer it to them
      * @dev Borrowers will not begin to accrue until after the first interaction with the protocol.
      * @param tToken The market in which the borrower is interacting
-     * @param borrower The address of the borrower to distribute LENDt to
+     * @param borrower The address of the borrower to distribute LEND to
      */
-    function distributeBorrowerLendt(address tToken, address borrower, Exp memory marketBorrowIndex) internal {
-        LendtMarketState storage borrowState = lendtBorrowState[tToken];
+    function distributeBorrowerLend(address tToken, address borrower, Exp memory marketBorrowIndex) internal {
+        LendMarketState storage borrowState = lendBorrowState[tToken];
         Double memory borrowIndex = Double({mantissa: borrowState.index});
-        Double memory borrowerIndex = Double({mantissa: lendtBorrowerIndex[tToken][borrower]});
-        lendtBorrowerIndex[tToken][borrower] = borrowIndex.mantissa;
+        Double memory borrowerIndex = Double({mantissa: lendBorrowerIndex[tToken][borrower]});
+        lendBorrowerIndex[tToken][borrower] = borrowIndex.mantissa;
 
         if (borrowerIndex.mantissa > 0) {
             Double memory deltaIndex = sub_(borrowIndex, borrowerIndex);
             uint borrowerAmount = div_(TToken(tToken).borrowBalanceStored(borrower), marketBorrowIndex);
             uint borrowerDelta = mul_(borrowerAmount, deltaIndex);
-            uint borrowerAccrued = add_(lendtAccrued[borrower], borrowerDelta);
-            lendtAccrued[borrower] = borrowerAccrued;
-            emit DistributedBorrowerLendt(TToken(tToken), borrower, borrowerDelta, borrowIndex.mantissa);
+            uint borrowerAccrued = add_(lendAccrued[borrower], borrowerDelta);
+            lendAccrued[borrower] = borrowerAccrued;
+            emit DistributedBorrowerLend(TToken(tToken), borrower, borrowerDelta, borrowIndex.mantissa);
         }
     }
 
     /**
-     * @notice Calculate additional accrued LENDt for a contributor since last accrual
+     * @notice Calculate additional accrued LEND for a contributor since last accrual
      * @param contributor The address to calculate contributor rewards for
      */
     function updateContributorRewards(address contributor) public {
-        uint lendtSpeed = lendtContributorSpeeds[contributor];
+        uint lendSpeed = lendContributorSpeeds[contributor];
         uint blockNumber = getBlockNumber();
         uint deltaBlocks = sub_(blockNumber, lastContributorBlock[contributor]);
-        if (deltaBlocks > 0 && lendtSpeed > 0) {
-            uint newAccrued = mul_(deltaBlocks, lendtSpeed);
-            uint contributorAccrued = add_(lendtAccrued[contributor], newAccrued);
+        if (deltaBlocks > 0 && lendSpeed > 0) {
+            uint newAccrued = mul_(deltaBlocks, lendSpeed);
+            uint contributorAccrued = add_(lendAccrued[contributor], newAccrued);
 
-            lendtAccrued[contributor] = contributorAccrued;
+            lendAccrued[contributor] = contributorAccrued;
             lastContributorBlock[contributor] = blockNumber;
         }
     }
 
     /**
-     * @notice Claim all the lendt accrued by holder in all markets
-     * @param holder The address to claim LENDt for
+     * @notice Claim all the lend accrued by holder in all markets
+     * @param holder The address to claim LEND for
      */
-    function claimLendt(address holder) public {
-        return claimLendt(holder, allMarkets);
+    function claimLend(address holder) public {
+        return claimLend(holder, allMarkets);
     }
 
     /**
-     * @notice Claim all the lendt accrued by holder in the specified markets
-     * @param holder The address to claim LENDt for
-     * @param tTokens The list of markets to claim LENDt in
+     * @notice Claim all the lend accrued by holder in the specified markets
+     * @param holder The address to claim LEND for
+     * @param tTokens The list of markets to claim LEND in
      */
-    function claimLendt(address holder, TToken[] memory tTokens) public {
+    function claimLend(address holder, TToken[] memory tTokens) public {
         address[] memory holders = new address[](1);
         holders[0] = holder;
-        claimLendt(holders, tTokens, true, true);
+        claimLend(holders, tTokens, true, true);
     }
 
     /**
-     * @notice Claim all lendt accrued by the holders
-     * @param holders The addresses to claim LENDt for
-     * @param tTokens The list of markets to claim LENDt in
-     * @param borrowers Whether or not to claim LENDt earned by borrowing
-     * @param suppliers Whether or not to claim LENDt earned by supplying
+     * @notice Claim all lend accrued by the holders
+     * @param holders The addresses to claim LEND for
+     * @param tTokens The list of markets to claim LEND in
+     * @param borrowers Whether or not to claim LEND earned by borrowing
+     * @param suppliers Whether or not to claim LEND earned by supplying
      */
-    function claimLendt(address[] memory holders, TToken[] memory tTokens, bool borrowers, bool suppliers) public {
+    function claimLend(address[] memory holders, TToken[] memory tTokens, bool borrowers, bool suppliers) public {
         for (uint i = 0; i < tTokens.length; i++) {
             TToken tToken = tTokens[i];
             require(markets[address(tToken)].isListed, "market must be listed");
             if (borrowers == true) {
                 Exp memory borrowIndex = Exp({mantissa: tToken.borrowIndex()});
-                updateLendtBorrowIndex(address(tToken), borrowIndex);
+                updateLendBorrowIndex(address(tToken), borrowIndex);
                 for (uint j = 0; j < holders.length; j++) {
-                    distributeBorrowerLendt(address(tToken), holders[j], borrowIndex);
+                    distributeBorrowerLend(address(tToken), holders[j], borrowIndex);
                 }
             }
             if (suppliers == true) {
-                updateLendtSupplyIndex(address(tToken));
+                updateLendSupplyIndex(address(tToken));
                 for (uint j = 0; j < holders.length; j++) {
-                    distributeSupplierLendt(address(tToken), holders[j]);
+                    distributeSupplierLend(address(tToken), holders[j]);
                 }
             }
         }
         for (uint j = 0; j < holders.length; j++) {
-            lendtAccrued[holders[j]] = grantLendtInternal(holders[j], lendtAccrued[holders[j]]);
+            lendAccrued[holders[j]] = grantLendInternal(holders[j], lendAccrued[holders[j]]);
         }
     }
 
     /**
-     * @notice Transfer LENDt to the user
-     * @dev Note: If there is not enough LENDt, we do not perform the transfer all.
-     * @param user The address of the user to transfer LENDt to
-     * @param amount The amount of LENDt to (possibly) transfer
-     * @return The amount of LENDt which was NOT transferred to the user
+     * @notice Transfer LEND to the user
+     * @dev Note: If there is not enough LEND, we do not perform the transfer all.
+     * @param user The address of the user to transfer LEND to
+     * @param amount The amount of LEND to (possibly) transfer
+     * @return The amount of LEND which was NOT transferred to the user
      */
-    function grantLendtInternal(address user, uint amount) internal returns (uint) {
-        Lendt lendt = Lendt(getLendtAddress());
-        uint lendtRemaining = lendt.balanceOf(address(this));
-        if (amount > 0 && amount <= lendtRemaining) {
-            lendt.transfer(user, amount);
+    function grantLendInternal(address user, uint amount) internal returns (uint) {
+        Lend lend = Lend(getLendAddress());
+        uint lendRemaining = lend.balanceOf(address(this));
+        if (amount > 0 && amount <= lendRemaining) {
+            lend.transfer(user, amount);
             return 0;
         }
         return amount;
     }
 
-    /*** Lendt Distribution Admin ***/
+    /*** Lend Distribution Admin ***/
 
     /**
-     * @notice Transfer LENDt to the recipient
-     * @dev Note: If there is not enough LENDt, we do not perform the transfer all.
-     * @param recipient The address of the recipient to transfer LENDt to
-     * @param amount The amount of LENDt to (possibly) transfer
+     * @notice Transfer LEND to the recipient
+     * @dev Note: If there is not enough LEND, we do not perform the transfer all.
+     * @param recipient The address of the recipient to transfer LEND to
+     * @param amount The amount of LEND to (possibly) transfer
      */
-    function _grantLendt(address recipient, uint amount) public {
-        require(adminOrInitializing(), "only admin can grant lendt");
-        uint amountLeft = grantLendtInternal(recipient, amount);
-        require(amountLeft == 0, "insufficient lendt for grant");
-        emit LendtGranted(recipient, amount);
+    function _grantLend(address recipient, uint amount) public {
+        require(adminOrInitializing(), "only admin can grant lend");
+        uint amountLeft = grantLendInternal(recipient, amount);
+        require(amountLeft == 0, "insufficient lend for grant");
+        emit LendGranted(recipient, amount);
     }
 
     /**
-     * @notice Set LENDt speed for a single market
-     * @param tToken The market whose LENDt speed to update
-     * @param lendtSpeed New LENDt speed for market
+     * @notice Set LEND speed for a single market
+     * @param tToken The market whose LEND speed to update
+     * @param lendSpeed New LEND speed for market
      */
-    function _setLendtSpeed(TToken tToken, uint lendtSpeed) public {
-        require(adminOrInitializing(), "only admin can set lendt speed");
-        setLendtSpeedInternal(tToken, lendtSpeed);
+    function _setLendSpeed(TToken tToken, uint lendSpeed) public {
+        require(adminOrInitializing(), "only admin can set lend speed");
+        setLendSpeedInternal(tToken, lendSpeed);
     }
 
     /**
-     * @notice Set LENDt speed for a single contributor
-     * @param contributor The contributor whose LENDt speed to update
-     * @param lendtSpeed New LENDt speed for contributor
+     * @notice Set LEND speed for a single contributor
+     * @param contributor The contributor whose LEND speed to update
+     * @param lendSpeed New LEND speed for contributor
      */
-    function _setContributorLendtSpeed(address contributor, uint lendtSpeed) public {
-        require(adminOrInitializing(), "only admin can set lendt speed");
+    function _setContributorLendSpeed(address contributor, uint lendSpeed) public {
+        require(adminOrInitializing(), "only admin can set lend speed");
 
-        // note that LENDt speed could be set to 0 to halt liquidity rewards for a contributor
+        // note that LEND speed could be set to 0 to halt liquidity rewards for a contributor
         updateContributorRewards(contributor);
-        if (lendtSpeed == 0) {
+        if (lendSpeed == 0) {
             // release storage
             delete lastContributorBlock[contributor];
         } else {
             lastContributorBlock[contributor] = getBlockNumber();
         }
-        lendtContributorSpeeds[contributor] = lendtSpeed;
+        lendContributorSpeeds[contributor] = lendSpeed;
 
-        emit ContributorLendtSpeedUpdated(contributor, lendtSpeed);
+        emit ContributorLendSpeedUpdated(contributor, lendSpeed);
     }
 
     /**
@@ -4750,10 +4750,10 @@ contract TENTroller is TENTrollerV5Storage, TENTrollerInterface, TENTrollerError
     }
 
     /**
-     * @notice Return the address of the LENDt token
-     * @return The address of LENDt
+     * @notice Return the address of the LEND token
+     * @return The address of LEND
      */
-    function getLendtAddress() public view returns (address) {
-        return 0x71468E0eb050fd8C2884c5a13B848aB29De01AD5;
+    function getLendAddress() public view returns (address) {
+        return 0xFc2aC181cD9af8b3Ff62B8aadD353Ae86c5D042A;
     }
 }

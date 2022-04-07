@@ -3030,7 +3030,7 @@ contract TErc20 is TToken, TErc20Interface {
     }
 
     /**
-    * @notice Admin call to delegate the votes of the LENDT-like underlying
+    * @notice Admin call to delegate the votes of the LEND-like underlying
     * @param lendLikeDelegatee The address to delegate votes to
     * @dev TTokens whose underlying are not LENDLike should revert here
     */

@@ -356,7 +356,7 @@ pragma solidity ^0.5.16;
 /**
  * @title Exponential module for storing fixed-precision decimals
  * @author compound
- * @dev Legacy contract for lendtatibility reasons with existing contracts that still use MathError
+ * @dev Legacy contract for compatibility reasons with existing contracts that still use MathError
  * @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
  *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
  *         `Exp({mantissa: 5100000000000000000})`.
@@ -2877,8 +2877,8 @@ contract TENTrollerV2Storage is TENTrollerV1Storage {
         /// @notice Per-market mapping of "accounts in this asset"
         mapping(address => bool) accountMembership;
 
-        /// @notice Whether or not this market receives LENDT
-        bool isLENDted;
+        /// @notice Whether or not this market receives LEND
+        bool isLENDed;
     }
 
     /**
@@ -2903,8 +2903,8 @@ contract TENTrollerV2Storage is TENTrollerV1Storage {
 }
 
 contract TENTrollerV3Storage is TENTrollerV2Storage {
-    struct LENDtMarketState {
-        /// @notice The market's last updated lendtBorrowIndex or lendtSupplyIndex
+    struct LENDMarketState {
+        /// @notice The market's last updated lendBorrowIndex or lendSupplyIndex
         uint224 index;
 
         /// @notice The block number the index was last updated at
@@ -2914,26 +2914,26 @@ contract TENTrollerV3Storage is TENTrollerV2Storage {
     /// @notice A list of all markets
     TToken[] public allMarkets;
 
-    /// @notice The rate at which the flywheel distributes LENDT, per block
-    uint public lendtRate;
+    /// @notice The rate at which the flywheel distributes LEND, per block
+    uint public lendRate;
 
-    /// @notice The portion of lendtRate that each market currently receives
-    mapping(address => uint) public lendtSpeeds;
+    /// @notice The portion of lendRate that each market currently receives
+    mapping(address => uint) public lendSpeeds;
 
-    /// @notice The LENDT market supply state for each market
-    mapping(address => LENDtMarketState) public lendtSupplyState;
+    /// @notice The LEND market supply state for each market
+    mapping(address => LENDMarketState) public lendSupplyState;
 
-    /// @notice The LENDT market borrow state for each market
-    mapping(address => LENDtMarketState) public lendtBorrowState;
+    /// @notice The LEND market borrow state for each market
+    mapping(address => LENDMarketState) public lendBorrowState;
 
-    /// @notice The LENDT borrow index for each market for each supplier as of the last time they accrued LENDT
-    mapping(address => mapping(address => uint)) public lendtSupplierIndex;
+    /// @notice The LEND borrow index for each market for each supplier as of the last time they accrued LEND
+    mapping(address => mapping(address => uint)) public lendSupplierIndex;
 
-    /// @notice The LENDT borrow index for each market for each borrower as of the last time they accrued LENDT
-    mapping(address => mapping(address => uint)) public lendtBorrowerIndex;
+    /// @notice The LEND borrow index for each market for each borrower as of the last time they accrued LEND
+    mapping(address => mapping(address => uint)) public lendBorrowerIndex;
 
-    /// @notice The LENDT accrued but not yet transferred to each user
-    mapping(address => uint) public lendtAccrued;
+    /// @notice The LEND accrued but not yet transferred to each user
+    mapping(address => uint) public lendAccrued;
 }
 
 contract TENTrollerV4Storage is TENTrollerV3Storage {
@@ -2945,10 +2945,10 @@ contract TENTrollerV4Storage is TENTrollerV3Storage {
 }
 
 contract TENTrollerV5Storage is TENTrollerV4Storage {
-    /// @notice The portion of LENDT that each contributor receives per block
-    mapping(address => uint) public lendtContributorSpeeds;
+    /// @notice The portion of LEND that each contributor receives per block
+    mapping(address => uint) public lendContributorSpeeds;
 
-    /// @notice Last block at which a contributor's LENDT rewards have been allocated
+    /// @notice Last block at which a contributor's LEND rewards have been allocated
     mapping(address => uint) public lastContributorBlock;
 }
 // File: tenfinanceContracts/Unitroller.sol
