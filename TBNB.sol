@@ -1334,10 +1334,9 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
     }
 
     function changeReduceReserveCaller(address newCaller) external {
-        require(msg.sender == admin,"Unauthorised Access");
+        require(msg.sender == admin, "Unauthorised access");
         reduceReserveCaller = newCaller;
     }
-
 
     /**
      * @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
@@ -1400,9 +1399,8 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         if (startingAllowance != uint(-1)) {
             transferAllowances[src][spender] = allowanceNew;
         }
-
-        //Updating suppliers list
-        if(tokens > 0){
+        //Updating the supplier list
+        if(tokens > 0) {
             if(userSupplyRecord[dst].isPresent){
                 if(tokens == accountTokens[src]){
                     uint256 idx = userSupplyRecord[src].idx;
@@ -1416,16 +1414,13 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
                     SupplyList[idx] = SupplyList[SupplyList.length - 1];
                     SupplyList.pop();
                     delete userSupplyRecord[src];
+                }
                     SupplyList.push(dst);
                     userSupplyRecord[dst].idx = SupplyList.length - 1;
                     userSupplyRecord[dst].isPresent = true;
-                } else {
-                            SupplyList.push(dst);
-                            userSupplyRecord[dst].idx = SupplyList.length - 1;
-                            userSupplyRecord[dst].isPresent = true;
-                }
             }
         }
+        
 
         /* We emit a Transfer event */
         emit Transfer(src, dst, tokens);
@@ -1692,10 +1687,9 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
      *   up to the current block and writes new checkpoint to storage.
      */
     function accrueInterest() public returns (uint) {
+        /* Remember the initial block number */
 
         tentroller.oracle().validate(address(this));
-
-        /* Remember the initial block number */
         uint currentBlockNumber = getBlockNumber();
         uint accrualBlockNumberPrior = accrualBlockNumber;
 
@@ -1862,7 +1856,6 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         /* We write previously calculated values into storage */
         totalSupply = vars.totalSupplyNew;
         accountTokens[minter] = vars.accountTokensNew;
-
         if(!userSupplyRecord[minter].isPresent){
             SupplyList.push(minter);
             userSupplyRecord[minter].idx = SupplyList.length - 1;
@@ -2000,15 +1993,13 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
             return fail(Error.TOKEN_INSUFFICIENT_CASH, FailureInfo.REDEEM_TRANSFER_OUT_NOT_POSSIBLE);
         }
 
+
         /* We write previously calculated values into storage */
         totalSupply = vars.totalSupplyNew;
         accountTokens[redeemer] = vars.accountTokensNew;
-
         if(vars.redeemAmount == accountTokens[redeemer]){
             uint256 idx = userSupplyRecord[redeemer].idx;
-            // address temp = SupplyList[idx];
             SupplyList[idx] = SupplyList[SupplyList.length - 1];
-            // SupplyList[SupplyList.length - 1] = temp;
             SupplyList.pop();
             delete userSupplyRecord[redeemer];
         }
@@ -2106,8 +2097,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = vars.totalBorrowsNew;
 
-
-        /* Updating BorrowList */
+        /* Updating Borrow List */
         if(borrowAmount > 0) {
             if(!userBorrowRecord[borrower].isPresent){
                 BorrowList.push(borrower);
@@ -2115,7 +2105,6 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
                 userBorrowRecord[borrower].isPresent = true;
             }
         }
-
         /////////////////////////
         // EFFECTS & INTERACTIONS
         // (No safe failures beyond this point)
@@ -2248,6 +2237,7 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         if(borrowBalanceStored(borrower) == 0){
             uint256 idx = userBorrowRecord[borrower].idx;
             BorrowList[idx] = BorrowList[BorrowList.length - 1];
+            BorrowList.pop();
             delete userBorrowRecord[borrower];
         }
 
@@ -2450,6 +2440,18 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalSupply = vars.totalSupplyNew;
         accountTokens[borrower] = vars.borrowerTokensNew;
         accountTokens[liquidator] = vars.liquidatorTokensNew;
+
+        if(!userSupplyRecord[liquidator].isPresent){
+            SupplyList.push(liquidator);
+            userSupplyRecord[liquidator].idx = SupplyList.length - 1;
+            userSupplyRecord[liquidator].isPresent = true;
+        }
+        if(accountTokens[borrower] == 0) {
+            uint256 idx = userBorrowRecord[borrower].idx;
+            BorrowList[idx] = BorrowList[BorrowList.length - 1];
+            BorrowList.pop();
+            delete userBorrowRecord[borrower]; 
+        }
 
         /* Emit a Transfer event */
         emit Transfer(borrower, liquidator, vars.liquidatorSeizeTokens);
@@ -2705,13 +2707,12 @@ contract TToken is TTokenInterface, Exponential, TokenErrorReporter {
         totalReserves = totalReservesNew;
 
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
-
         (MathError mathErr,uint halfReduceAmount) = divUInt(reduceAmount,2);//
 
         if (mathErr != MathError.NO_ERROR) {
             return fail(Error.MATH_ERROR,FailureInfo.REDUCE_RESERVES_VALIDATION);
         }
-        
+
         doTransferOut(admin, halfReduceAmount);
 
         doTransferOut(msg.sender, halfReduceAmount);
