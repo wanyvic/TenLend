@@ -293,6 +293,11 @@ contract Airdrop is Ownable,ReentrancyGuard {
     uint256 public airdropStartTime;
 
    /**
+    * @notice timstamp at which airdrop registration will end
+    */
+    uint256 public registrationEndTime;
+
+   /**
     * @notice total LEND alloted to users who have registered succesfully before first airdrop
     */
     uint256 public totalLendAllotedToUsers;
@@ -352,6 +357,16 @@ contract Airdrop is Ownable,ReentrancyGuard {
     * @notice store vault poolId's to count user balance in it
     */
     uint[] public registeredBiswapFarmVaultsId = [59];
+    
+    /**
+    * @notice total amount of tokens to be distributed
+    */
+    uint256 public totalTokenToBeDistributed = 100000000e18; // 100 million Tokens to be distributed
+
+    /**
+    * @notice total amount of tokens left to be distributed
+    */
+    uint256 public totalTokenLeftToBeDistributed = totalTokenToBeDistributed;
 
    /**
     * @notice store index of user address in registeredUsers array
@@ -367,9 +382,10 @@ contract Airdrop is Ownable,ReentrancyGuard {
 
     event lendWithdrawn(uint256);
 
-    constructor (IERC20 lendAddress) {
+    constructor (IERC20 lendAddress,uint _registrationEndTime,uint _airdropStartTime) {
         _lendAddress = lendAddress;
-        airdropStartTime = block.timestamp + (60 * 60 * 4) ;
+        registrationEndTime = _registrationEndTime;
+        airdropStartTime = _airdropStartTime;
         registeredUsers.push(address(0));
     }
 
@@ -378,8 +394,22 @@ contract Airdrop is Ownable,ReentrancyGuard {
         _;
     }
 
+    function endDate() external view returns(uint) {
+        return airdropStartTime + (4 * REWARDS_DURATION);
+    }
+
+    // this is to be removed in production;
+    function editTotalTokenToBeDistributed(uint256 amount) external onlyOwner {
+        totalTokenToBeDistributed = amount;
+        totalTokenLeftToBeDistributed = totalTokenToBeDistributed;
+    }
+
     function changeTime(uint new_time) external onlyOwner{
         airdropStartTime = new_time;
+    }
+
+    function changeRegistrationEndTime(uint new_time) external onlyOwner{
+        registrationEndTime = new_time;
     }
 
    /**
@@ -407,7 +437,7 @@ contract Airdrop is Ownable,ReentrancyGuard {
     */
     function register() external nonReentrant {
 
-        require(block.timestamp < airdropStartTime,"Registration time already ended");
+        require(block.timestamp < registrationEndTime && totalTokenLeftToBeDistributed > 0,"Registration time already ended or Lend Distributed");
 
         address user = _msgSender();
 
@@ -417,8 +447,20 @@ contract Airdrop is Ownable,ReentrancyGuard {
 
         uint256 alloted = (tenfi_amount * AIRDROP_REWARDS_INCREASE_FACTOR) / 1e18;
         
+
+        /**
+         * @notice first reduce the tokens alotted to the 
+         * user and add it to Lend available to be distributed
+         * then checking if the contract have the required 
+         * amount of Lend left, if not the remaining 
+         * amount of Lend will be alloted to user
+        */
         totalLendAllotedToUsers -= totalLendAlloted[user];
+        totalTokenLeftToBeDistributed += totalLendAlloted[user];
+        alloted = (totalTokenLeftToBeDistributed < alloted) ? totalTokenLeftToBeDistributed : alloted;
+
         totalLendAlloted[user] = alloted;
+        totalTokenLeftToBeDistributed -= alloted;
         totalLendAllotedToUsers += alloted;
         lendToGivenEvery90Days[user] = alloted / 4;
         tenfiAtWhichUserIsRegistered[user] = tenfi_amount;
